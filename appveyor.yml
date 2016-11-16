@@ -4,7 +4,7 @@
 version: 1.0.{build}.0
 environment:
   AppID:
-    secure: IJBqnB6WjtDi3ej/zy2D70Ry1AvJOrlZK5BhSoqEdxNENd0CL9qdMJndbi6p+di3>
+    secure: IJBqnB6WjtDi3ej/zy2D70Ry1AvJOrlZK5BhSoqEdxNENd0CL9qdMJndbi6p+di3
   AppPass:
     secure: b8lT719n/ll0Bp5SloBvzw==
   Tenant:
@@ -44,4 +44,3 @@ deploy_script:
   - ps: |
         $creds = New-Object -typename System.Management.Automation.PSCredential -argumentlist $env:AppID, $(convertto-securestring -String $env:AppPass -AsPlainText -Force)
         Add-AzureRmAccount -Credential $creds -ServicePrincipal -TenantId $env:Tenant | Out-Null
-        
