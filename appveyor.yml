@@ -7,6 +7,8 @@ environment:
     secure: IJBqnB6WjtDi3ej/zy2D70Ry1AvJOrlZK5BhSoqEdxNENd0CL9qdMJndbi6p+di3>
   AppPass:
     secure: b8lT719n/ll0Bp5SloBvzw==
+  Tenant:
+    secure: J/my7xsOE9jewR0DDhD+EU5jeo5Bp83/nmIK8a8QI0QLoZXStCOtk1vUjVsKylW2
 install:
   - git clone https://github.com/Microsoft/WindowsDNSServer.Config
   - ps: |
@@ -40,11 +42,9 @@ test_script:
 # scripts to run before deployment 
 deploy_script: 
   - ps: |
-
 $creds = new-object -typename System.Management.Automation.PSCredential `
          -argumentlist $env:AppID, $(convertto-securestring -String $env:AppPass -AsPlainText -Force)
-Add-AzureRmAccount -Credential $creds -ServicePrincipal -TenantId '72f988bf-86f1-41af-91ab-2d7cd011db47' | Out-Null
-
+Add-AzureRmAccount -Credential $creds -ServicePrincipal -TenantId $env:Tenant | Out-Null
 
 <#      
     @(
