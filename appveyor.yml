@@ -42,5 +42,8 @@ test_script:
 # scripts to run before deployment 
 deploy_script: 
   - ps: |
+        Enable-AzureDataCollection
         $creds = New-Object -typename System.Management.Automation.PSCredential -argumentlist $env:AppID, $(convertto-securestring -String $env:AppPass -AsPlainText -Force)
         Add-AzureRmAccount -Credential $creds -ServicePrincipal -TenantId $env:Tenant | Out-Null
+        New-AzureRmResourceGroup -Name 'Test001' -Location 'EastUS'
+        Remove-AzureRmResourceGroup -Name 'Test001' -Force
