@@ -42,13 +42,6 @@ test_script:
 # scripts to run before deployment 
 deploy_script: 
   - ps: |
-        $creds = new-object -typename System.Management.Automation.PSCredential -argumentlist $env:AppID, $(convertto-securestring -String $env:AppPass -AsPlainText -Force)
+        $creds = New-Object -typename System.Management.Automation.PSCredential -argumentlist $env:AppID, $(convertto-securestring -String $env:AppPass -AsPlainText -Force)
         Add-AzureRmAccount -Credential $creds -ServicePrincipal -TenantId $env:Tenant | Out-Null
-
-        <#      
-            @(               
-            ) | % { 
-                Write-Host "Pushing package $_ as Appveyor artifact"
-                Push-AppveyorArtifact $_
-            }
-        #>
+        
