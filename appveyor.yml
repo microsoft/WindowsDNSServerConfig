@@ -12,7 +12,7 @@ environment:
 install:
   - git clone https://github.com/Microsoft/WindowsDNSServer.Config
   - ps: |
-        Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.205 -Force
+        Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.205 -Force | Out-Null
         Install-Module -Name Pester -Repository PSGallery -Force
         Install-Module -Name AzureRM -Repository PSGallery -Force
 
@@ -42,8 +42,8 @@ test_script:
 # scripts to run before deployment 
 deploy_script: 
   - ps: |
-        Enable-AzureDataCollection
         $creds = New-Object -typename System.Management.Automation.PSCredential -argumentlist $env:AppID, $(convertto-securestring -String $env:AppPass -AsPlainText -Force)
         Add-AzureRmAccount -Credential $creds -ServicePrincipal -TenantId $env:Tenant | Out-Null
-        New-AzureRmResourceGroup -Name 'Test001' -Location 'EastUS'
-        Remove-AzureRmResourceGroup -Name 'Test001' -Force
+        New-AzureRmResourceGroup -Name $env:APPVEYOR_PROJECT_NAME -Location 'EastUS'
+        New-AzureRMAutomationAccount -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -Name $env:APPVEYOR_PROJECT_NAME -Location 'EastUS'
+        Remove-AzureRmResourceGroup -Name $env:APPVEYOR_PROJECT_NAME -Force
