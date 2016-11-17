@@ -45,7 +45,7 @@ deploy_script:
         $loc = 'eastus2'
         $creds = New-Object -typename System.Management.Automation.PSCredential -argumentlist $env:AppID, $(convertto-securestring -String $env:AppPass -AsPlainText -Force)
         Add-AzureRmAccount -Credential $creds -ServicePrincipal -TenantId $env:Tenant | Out-Null
-        Enable-AzureDataCollection
         New-AzureRmResourceGroup -Name $env:APPVEYOR_PROJECT_NAME -Location $loc
-        New-AzureRMAutomationAccount -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -Name $env:APPVEYOR_PROJECT_ID -Location $loc
+        New-AzureRMAutomationAccount -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -Name $env:APPVEYOR_PROJECT_ID
+        Mew-AzureRMVM -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -vm $env:APPVEYOR_PROJECT_ID
         Remove-AzureRmResourceGroup -Name $env:APPVEYOR_PROJECT_NAME -Force
