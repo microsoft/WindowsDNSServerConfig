@@ -54,11 +54,8 @@ deploy_script:
         # import configuration module
         $Global:DSCModuleName      = 'WindowsDNSServer.Config'
         $Global:DSCResourceName    = 'WindowsDNSServer.Config'
-        $TestEnvironment = Initialize-TestEnvironment `
-          -DSCModuleName $Global:DSCModuleName `
+        $TestEnvironment = Initialize-TestEnvironment -DSCModuleName $Global:DSCModuleName -DSCResourceName $Global:DSCResourceName -TestType Integration 
           # although this is mandatory, it is not used for integration test type
-          -DSCResourceName $Global:DSCResourceName `
-          -TestType Integration 
         
         # look up prereqs
         # todo - most recent if not specific
@@ -75,6 +72,6 @@ deploy_script:
         # todo - if mof, upload artifact to AADSC and AppVeyor, maybe also to GitHub?
 
         # todo - tests from demo_ci
-        
+
         Start-Sleep -Seconds 300
         Remove-AzureRmResourceGroup -Name $env:APPVEYOR_PROJECT_NAME -Force
