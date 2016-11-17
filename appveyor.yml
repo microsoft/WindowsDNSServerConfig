@@ -47,5 +47,13 @@ deploy_script:
         Add-AzureRmAccount -Credential $creds -ServicePrincipal -TenantId $env:Tenant | Out-Null
         New-AzureRmResourceGroup -Name $env:APPVEYOR_PROJECT_NAME -Location $loc
         New-AzureRMAutomationAccount -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -Name $env:APPVEYOR_PROJECT_ID -Location $loc
-        New-AzureRMVM -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -vm $env:APPVEYOR_PROJECT_ID -Location $loc
+        $Modules = @(
+            @{
+              Name = 'xDNSServer'
+              URI = 'https://github.com/PowerShell/xDnsServer/archive/1.7.0.0-PSGallery.zip'
+              }
+          )
+        Foreach($module in $modules) {
+          New-AzureRMAutomationModule -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Name $Module.Name -ContentLink $Module.URI
+        }
         Remove-AzureRmResourceGroup -Name $env:APPVEYOR_PROJECT_NAME -Force
