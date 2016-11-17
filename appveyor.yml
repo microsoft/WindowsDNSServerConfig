@@ -11,7 +11,9 @@ environment:
     secure: J/my7xsOE9jewR0DDhD+EU5jeo5Bp83/nmIK8a8QI0QLoZXStCOtk1vUjVsKylW2
 install:
   - git clone https://github.com/Microsoft/WindowsDNSServer.Config
+  - git clone https://github.com/PowerShell/DscResource.Tests
   - ps: |
+        Import-Module -Name .\DscResource.Tests\TestHelper.psm1 -Force
         Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.205 -Force | Out-Null
         Install-Module -Name Pester -Repository PSGallery -Force
         Install-Module -Name AzureRM -Repository PSGallery -Force
@@ -47,13 +49,32 @@ deploy_script:
         Add-AzureRmAccount -Credential $creds -ServicePrincipal -TenantId $env:Tenant | Out-Null
         New-AzureRmResourceGroup -Name $env:APPVEYOR_PROJECT_NAME -Location $loc
         New-AzureRMAutomationAccount -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -Name $env:APPVEYOR_PROJECT_ID -Location $loc
-        $Modules = @(
-            @{
-              Name = 'xDNSServer'
-              URI = 'https://github.com/PowerShell/xDnsServer/archive/1.7.0.0-PSGallery.zip'
-              }
-          )
-        Foreach($module in $modules) {
-          New-AzureRMAutomationModule -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Name $Module.Name -ContentLink $Module.URI
+
+        # load test helper
+        # import configuration module
+        $Global:DSCModuleName      = 'WindowsDNSServer.Config'
+        $Global:DSCResourceName    = 'WindowsDNSServer.Config'
+        $TestEnvironment = Initialize-TestEnvironment `
+          -DSCModuleName $Global:DSCModuleName `
+          # although this is mandatory, it is not used for integration test type
+          -DSCResourceName $Global:DSCResourceName `
+          -TestType Integration 
+        
+        # look up prereqs
+        # todo - most recent if not specific
+        $PrereqModules = (Get-Module -Name $Global:DSCModuleName).RequiredModules
+        foreach($PrereqModule in $PrereqModules) {
+          $galleryReference = Invoke-RestMethod -Method Get -Uri "https://www.powershellgallery.com/api/v2/FindPackagesById()?id='$Global:DSCModuleName'"
+          # get URL and publish to AADSC
+          New-AzureRMAutomationModule -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Name $Global:DSCModuleName -ContentLink $galleryReference.count-1.content.src 
         }
+        
+        # todo - install to build node using nuget (use testhelper)
+        # todo - compile configs
+        # todo - this needs to happen early, and fail the entire script if any config does not compile
+        # todo - if mof, upload artifact to AADSC and AppVeyor, maybe also to GitHub?
+
+        # todo - tests from demo_ci
+        
+        Start-Sleep -Seconds 300
         Remove-AzureRmResourceGroup -Name $env:APPVEYOR_PROJECT_NAME -Force
