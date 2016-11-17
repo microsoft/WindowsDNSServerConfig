@@ -47,5 +47,5 @@ deploy_script:
         Add-AzureRmAccount -Credential $creds -ServicePrincipal -TenantId $env:Tenant | Out-Null
         New-AzureRmResourceGroup -Name $env:APPVEYOR_PROJECT_NAME -Location $loc
         New-AzureRMAutomationAccount -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -Name $env:APPVEYOR_PROJECT_ID -Location $loc
-        Mew-AzureRMVM -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -vm $env:APPVEYOR_PROJECT_ID -Location $loc
+        New-AzureRMVM -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -vm $env:APPVEYOR_PROJECT_ID -Location $loc
         Remove-AzureRmResourceGroup -Name $env:APPVEYOR_PROJECT_NAME -Force
