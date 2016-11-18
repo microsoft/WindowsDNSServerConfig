@@ -19,7 +19,7 @@ install:
         #Install-Module -Name AzureRM -Repository PSGallery -Force
         foreach($path in ($env:psmodulepath.split(';').ToUpper().ToLower() | Select-Object -Unique))
         {
-          $fixpath += $path
+          $fixpath += "$path;"
         }
         $env:psmodulepath = $fixpath
 
@@ -67,7 +67,7 @@ deploy_script:
         }
         
         Import-Module -Name $(".\" + $env:APPVEYOR_PROJECT_NAME + ".psm1")
-        
+
         $Configurations = Get-Command -Type Configuration
         foreach ($confToCompile in $Configurations) {
           Invoke-Expression $confToCompile.Name -OutPath .\MOF\$confToCompile.Name
