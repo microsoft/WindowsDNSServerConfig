@@ -51,6 +51,7 @@ deploy_script:
           $fixpath += "$path;"
         }
         $env:psmodulepath = $fixpath
+        $env:psmodulepath = $fixpath.split(';') | Sort-Object
         
         # Load module data and create array of objects containing prerequisite details
         # TODO - test when a version is specified
