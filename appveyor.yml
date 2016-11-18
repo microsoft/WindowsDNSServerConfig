@@ -47,17 +47,17 @@ deploy_script:
   - ps: |
         $loc = 'eastus2'
         $creds = New-Object -typename System.Management.Automation.PSCredential -argumentlist $env:AppID, $(convertto-securestring -String $env:AppPass -AsPlainText -Force)
-        if (!(Resolve-Path -Path 'C:\Users\appveyor\AppData\Roaming\Windows Azure Powershell\' -ErrorAction Continue))
+        if (!(Resolve-Path -Path 'C:\Users\appveyor\AppData\Roaming\Windows Azure Powershell\' -ErrorAction SilentlyContinue))
         {
           mkdir 'C:\Users\appveyor\AppData\Roaming\Windows Azure Powershell\'
         }
         Set-Content -Value '{"enableAzureDataCollection":true}' -Path 'C:\Users\appveyor\AppData\Roaming\Windows Azure Powershell\AzureDataCollectionProfile.json'
         Add-AzureRmAccount -Credential $creds -ServicePrincipal -TenantId $env:Tenant | Out-Null
-        if (!(Get-AzureRmResourceGroup -Name $env:APPVEYOR_PROJECT_NAME))
+        if (!(Get-AzureRmResourceGroup -Name $env:APPVEYOR_PROJECT_NAME -ErrorAction SilentlyContinue))
         {
             New-AzureRmResourceGroup -Name $env:APPVEYOR_PROJECT_NAME -Location $loc
         }
-        if (!(Get-AzureRMAutomationAccount -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -Name $env:APPVEYOR_PROJECT_ID))
+        if (!(Get-AzureRMAutomationAccount -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -Name $env:APPVEYOR_PROJECT_ID -ErrorAction SilentlyContinue))
         {
           New-AzureRMAutomationAccount -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -Name $env:APPVEYOR_PROJECT_ID -Location $loc
         }
@@ -65,7 +65,8 @@ deploy_script:
         # look up prereqs
         $moduleInformation = Import-PowerShellDataFile $(".\" + $env:APPVEYOR_PROJECT_NAME + ".psd1")
         # todo - most recent if not specific
-        foreach($prereqModule in $moduleInformation.RequiredModules) {
+        $moduleInformation.RequiredModules
+        foreach($prereqModule in $moduleInformation.RequiredModules[0]) {
           # get URL and publish to AADSC
           $galleryReference = Invoke-RestMethod -Method Get -Uri "https://www.powershellgallery.com/api/v2/FindPackagesById()?id='$prereqModule'" -ErrorAction Continue
           Write-Host "$prereqModule gallery URI = $($galleryReference[$galleryReference.count-1].content.src)"
