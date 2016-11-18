@@ -17,12 +17,7 @@ install:
         Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.205 -Force | Out-Null
         Install-Module -Name Pester -Repository PSGallery -Force
         #Install-Module -Name AzureRM -Repository PSGallery -Force
-        foreach($path in ($env:psmodulepath.split(';').ToUpper().ToLower() | Select-Object -Unique))
-        {
-          $fixpath += "$path;"
-        }
-        $env:psmodulepath = $fixpath
-
+        
 #---------------------------------#
 #      build configuration        #
 #---------------------------------#
@@ -50,6 +45,13 @@ test_script:
 # scripts to run before deployment 
 deploy_script: 
   - ps: |
+        # Correct duplicates in psmodulepath
+        foreach($path in ($env:psmodulepath.split(';').ToUpper().ToLower() | Select-Object -Unique))
+        {
+          $fixpath += "$path;"
+        }
+        $env:psmodulepath = $fixpath
+        
         # Load module data and create array of objects containing prerequisite details
         # TODO - test when a version is specified
         $requiredModules = @()
