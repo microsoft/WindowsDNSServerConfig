@@ -53,7 +53,7 @@ CLRVersion = '4.0'
 # Modules that must be imported into the global environment prior to importing this module
 RequiredModules = @('xDNSServer', 
                'xNetworking',
-               'PSDesiredStateConfiguration')
+               'xPSDesiredStateConfiguration')
 
 # Assemblies that must be loaded prior to importing this module
 # RequiredAssemblies = @()
