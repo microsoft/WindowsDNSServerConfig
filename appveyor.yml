@@ -16,7 +16,7 @@ install:
         Import-Module -Name .\DscResource.Tests\TestHelper.psm1 -Force
         Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.205 -Force | Out-Null
         Install-Module -Name Pester -Repository PSGallery -Force
-        Install-Module -Name AzureRM -Repository PSGallery -Force
+        #Install-Module -Name AzureRM -Repository PSGallery -Force
 
 #---------------------------------#
 #      build configuration        #
@@ -60,6 +60,9 @@ deploy_script:
             Install-Module -Name $prereqModule -force
           } 
         }
+        
+        $psmodulepath
+
         Get-Module -ListAvailable -FullyQualifiedName xDnsServer | fl *
 
         Import-Module -Name $(".\" + $env:APPVEYOR_PROJECT_NAME + ".psm1")
