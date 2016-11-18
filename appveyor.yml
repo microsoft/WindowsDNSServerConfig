@@ -63,6 +63,8 @@ deploy_script:
         }
 
         Import-Module -Name $configModulePath
+        # TODO - compile configs
+        # TODO - if mof, upload artifact to AADSC and AppVeyor, maybe also to GitHub?
 
         $loc = 'eastus2'
         $creds = New-Object -typename System.Management.Automation.PSCredential -argumentlist $env:AppID, $(convertto-securestring -String $env:AppPass -AsPlainText -Force)
@@ -89,11 +91,10 @@ deploy_script:
         foreach($automationModuleToUpload in $requiredModules) {
           New-AzureRMAutomationModule -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Name $automationModuleToUpload.Name -ContentLink $automationModuleToUpload.URI -verbose 
         }
-        
-        # todo - compile configs
-        # todo - this needs to happen early, and fail the entire script if any config does not compile
-        # todo - if mof, upload artifact to AADSC and AppVeyor, maybe also to GitHub?
 
-        # todo - tests from demo_ci
+        # TODO - standardize approach to deploying ARM template from repo handing off config name as param        
+        # TODO - MVP is single VM, complete is multiple VM solution
+        # TODO - tests from demo_ci
+        
         Start-Sleep -Seconds 300
         Remove-AzureRmResourceGroup -Name $env:APPVEYOR_PROJECT_NAME -Force
