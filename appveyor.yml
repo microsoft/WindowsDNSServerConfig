@@ -63,7 +63,14 @@ deploy_script:
         }
 
         Import-Module -Name $configModulePath
-        # TODO - compile configs
+        $Configurations = Get-Command -Type Configuration
+        foreach ($confToCompile in $Configurations) {
+          Invoke-Expression $confToCompile -OutPath .\MOF\$confToCompile
+        }
+        ls .\MOF -recurse
+
+        # TODO - creater array of objects to manage compiled configs
+        # TODO - handle configdata in an organized fashion
         # TODO - if mof, upload artifact to AADSC and AppVeyor, maybe also to GitHub?
 
         $loc = 'eastus2'
