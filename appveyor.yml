@@ -50,7 +50,7 @@ deploy_script:
         {
           $fixpath += "$path;"
         }
-        $env:psmodulepath = $fixpath
+        $env:psmodulepath = $fixpath.replace(';;',';')
         $env:psmodulepath.split(';') | Sort-Object
         
         # Load module data and create array of objects containing prerequisite details
