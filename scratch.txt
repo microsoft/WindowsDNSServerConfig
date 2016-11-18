@@ -1,11 +1,5 @@
-        Import-Module -Name $(".\" + $env:APPVEYOR_PROJECT_NAME + ".psm1")
-        $Configurations = Get-Command -Type Configuration
-        foreach ($confToCompile in $Configurations) {
-          Invoke-Expression $confToCompile.Name -OutPath .\MOF\$confToCompile.Name
-        }
-        $result = ls .\MOF -recurse
-        write-host $result
 
+                
         # TODO - creater array of objects to manage compiled configs
         # TODO - handle configdata in an organized fashion
         # TODO - if mof, upload artifact to AADSC and AppVeyor, maybe also to GitHub?
@@ -42,3 +36,4 @@
         
         # (for debug from portal) Start-Sleep -Seconds 300
         Remove-AzureRmResourceGroup -Name $env:APPVEYOR_PROJECT_NAME -Force
+   
