@@ -61,7 +61,7 @@ deploy_script:
           } 
         }
         
-        $psmodulepath
+        $env:psmodulepath
 
         Get-Module -ListAvailable -FullyQualifiedName xDnsServer | fl *
 
