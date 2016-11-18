@@ -52,7 +52,7 @@ deploy_script:
         New-AzureRMAutomationAccount -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -Name $env:APPVEYOR_PROJECT_ID -Location $loc
         
         # look up prereqs
-        $moduleInformation = Import-PowerShellDataFile $(".\" + "$Global:DSCResourceName" + ".psd1")
+        $moduleInformation = Import-PowerShellDataFile $(".\" + $env:APPVEYOR_PROJECT_NAME + ".psd1")
         # todo - most recent if not specific
         $PrereqModules = $moduleInformation.RequiredModules
         foreach($PrereqModule in $PrereqModules) {
