@@ -55,7 +55,7 @@ deploy_script:
           {
             $moduleReference = New-Object -TypeName PSObject
             $moduleReference | Add-Member -MemberType NoteProperty -Name 'Name' -Value $prereqModule
-            $moduleReference | Add-Member -MemberType NoteProperty -Name 'URI' -Value $galleryReference
+            $moduleReference | Add-Member -MemberType NoteProperty -Name 'URI' -Value $galleryReference[$galleryReference.count-1].content.src
             $requiredModules += $moduleReference
 
             Install-Module -Name $prereqModule -force
