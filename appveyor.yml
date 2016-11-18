@@ -61,4 +61,13 @@ deploy_script:
           } 
         }
         Get-Module -ListAvailable -FullyQualifiedName xDnsServer | fl *
+
+        Import-Module -Name $(".\" + $env:APPVEYOR_PROJECT_NAME + ".psm1")
         
+        $Configurations = Get-Command -Type Configuration
+        foreach ($confToCompile in $Configurations) {
+          Invoke-Expression $confToCompile.Name -OutPath .\MOF\$confToCompile.Name
+        }
+        
+        $result = ls .\MOF -recurse
+        write-host $result        
