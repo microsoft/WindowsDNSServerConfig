@@ -1,7 +1,9 @@
 @{
-    AllNodes = @(
+    AllNodes = 
+    @(
         @{
             NodeName = 'localhost'
+            RoleName = 'DNSServer'
             ZoneData = 
             @{
                 PrimaryZone = 'Contoso.com'

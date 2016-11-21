@@ -81,5 +81,5 @@ deploy_script:
           Invoke-Expression "$confToCompileName -OutputPath .\MOF\$confToCompileName -ConfigurationData .\Tests\ConfigData\$confToCompileName.ConfigData.psd1"
         }
         
-        ls -recurse
+        ls .\MOF -recurse
         
