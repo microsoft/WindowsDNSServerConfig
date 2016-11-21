@@ -48,14 +48,9 @@ deploy_script:
         # Correct duplicates in psmodulepath
         foreach($path in $env:psmodulepath.split(';').ToUpper().ToLower())
         {
-          [array]$correctDirFormat += "$path\"
+          [array]$correctDirFormat += "$path\;"
         }
         $correctDirFormat = $correctDirFormat.replace("\\","\") | Select-Object -Unique
-        foreach ($path in $correctDirFormat.split(';'))
-        {
-          $fixPath += "$path;"
-        }
-
         $env:psmodulepath = $fixpath.replace(';;',';')
         $env:psmodulepath.split(';') | Sort-Object
         
