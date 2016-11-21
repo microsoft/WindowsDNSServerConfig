@@ -110,8 +110,8 @@ deploy_script:
         foreach($automationModuleToUpload in $requiredModules) {
           New-AzureRMAutomationModule -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Name $automationModuleToUpload.Name -ContentLink $automationModuleToUpload.URI -verbose 
         }
-        
-        Import-AzureRMAutomationDSCNodeConfiguration -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Path .\MOF\WindowsDNSServer\localhost.mof -ConfigurationName WindowsDNSServer
+        ls .\MOF\WindowsDNSServer\ -recurse
+        Import-AzureRMAutomationDSCNodeConfiguration -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Path '.\MOF\WindowsDNSServer\localhost.mof' -ConfigurationName 'WindowsDNSServer' -Force
 
         # TODO - standardize approach to deploying ARM template from repo handing off config name as param        
         # TODO - MVP is single VM, complete is multiple VM solution
