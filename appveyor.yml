@@ -51,8 +51,11 @@ deploy_script:
           [array]$correctDirFormat += "$path\;"
         }
         $correctDirFormat = $correctDirFormat.replace("\\","\") | Select-Object -Unique
+        foreach ($path in $correctDirFormat.split(';'))
+        {
+          [string]$fixPath += "$path;"
+        }
         $env:psmodulepath = $fixpath.replace(';;',';')
-        $env:psmodulepath.split(';') | Sort-Object
         
         # Load module data and create array of objects containing prerequisite details
         # TODO - test when a version is specified
