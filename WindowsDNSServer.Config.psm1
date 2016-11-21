@@ -18,7 +18,7 @@
         # WindowsOptionalFeature is compatible with the Nano Server installation option
         WindowsOptionalFeature DNS
         {
-            Ensure  = 'Present'
+            Ensure  = 'Enabled'
             Name    = 'DNS-Server-Full-Role'
         }
 
