@@ -81,5 +81,5 @@ deploy_script:
           Invoke-Expression "$confToCompileName -Out .\MOF\$confToCompileName"
         }
         
-        $result = ls .\MOF -recurse
-        write-host $result
+        ls .\MOF -recurse
+        
