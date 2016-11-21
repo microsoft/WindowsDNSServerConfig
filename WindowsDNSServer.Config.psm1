@@ -22,7 +22,7 @@
             Name    = 'DNS-Server-Full-Role'
         }
 
-        foreach ($Zone in $ConfigData.AllNodes.ZoneData)
+        foreach ($Zone in $Node.ZoneData)
         {
             xDnsServerPrimaryZone $Zone.PrimaryZone
             {
