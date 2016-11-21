@@ -51,7 +51,7 @@ deploy_script:
           [array]$correctDirFormat += "$path\"
         }
         $correctDirFormat = $correctDirFormat.replace("\\","\") | Select-Object -Unique
-        foreach ($path in $correctDirFormat)
+        foreach ($path in $correctDirFormat.split(';'))
         {
           $fixPath += "$path;"
         }
