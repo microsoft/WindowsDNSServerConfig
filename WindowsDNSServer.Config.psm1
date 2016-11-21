@@ -22,31 +22,27 @@
             Name    = 'DNS-Server-Full-Role'
         }
 
-        xDnsServerPrimaryZone Contoso
+        foreach ($Zone in $ConfigData.AllNodes.ZoneData)
         {
-            Ensure    = 'Present'                
-            Name      = 'Contoso.com'
-            DependsOn = '[WindowsFeature]DNS'
-        }
-            
-        xDnsRecord ServerOne
-        {
-            Ensure    = 'Present'
-            Name      = 'ServerOne'
-            Zone      = 'Contoso.com'
-            Type      = 'ARecord'
-            Target    = '10.0.0.5'
-            DependsOn = '[WindowsFeature]DNS'
-        }
+            xDnsServerPrimaryZone $Zone.PrimaryZone
+            {
+                Ensure    = 'Present'                
+                Name      = $Zone.PrimaryZone
+                DependsOn = '[WindowsFeature]DNS'
+            }
 
-        xDnsRecord WWW
-        {
-            Ensure    = 'Present'
-            Name      = 'WWW'
-            Zone      = 'Contoso.com'
-            Type      = 'CName'
-            Target    = 'ServerOne'
-            DependsOn = '[WindowsFeature]DNS'
+            foreach ($ARecord in $Zone.ARecords)
+            {
+                xDnsRecord $ARecord.Key
+                {
+                    Ensure    = 'Present'
+                    Name      = $Record.Key
+                    Zone      = $PrimaryZone.PrimaryZone
+                    Type      = 'ARecord'
+                    Target    = $Record.Value
+                    DependsOn = '[WindowsFeature]DNS'
+                }        
+            }
         }
     }
 }

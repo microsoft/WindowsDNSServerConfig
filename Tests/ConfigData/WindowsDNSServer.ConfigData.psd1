@@ -3,7 +3,7 @@
     @(
         @{
             NodeName = 'localhost'
-            RoleName = 'DNSServer'
+            Role = 'DNSServer'
             ZoneData = 
             @{
                 PrimaryZone = 'Contoso.com'
