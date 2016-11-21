@@ -1,7 +1,7 @@
 @{
     AllNodes = @(
         @{
-            Name = '*'
+            NodeName = '*'
             ZoneData = 
             @{
                 PrimaryZone = 'Contoso.com'
