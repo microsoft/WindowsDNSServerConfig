@@ -48,9 +48,9 @@ deploy_script:
         # Correct duplicates in psmodulepath
         foreach($path in ($env:psmodulepath.split(';').ToUpper().ToLower() | Select-Object -Unique))
         {
-          $fixpath += "$path/;"
+          $fixpath += "$path\;"
         }
-        $env:psmodulepath = $fixpath.replace(';;',';').replace('//','/')
+        $env:psmodulepath = $fixpath.replace(';;',';').replace('\\','\')
         $env:psmodulepath.split(';') | Sort-Object
         
         # Load module data and create array of objects containing prerequisite details
