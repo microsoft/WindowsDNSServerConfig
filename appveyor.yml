@@ -46,11 +46,17 @@ test_script:
 deploy_script: 
   - ps: |
         # Correct duplicates in psmodulepath
-        foreach($path in ($env:psmodulepath.split(';').ToUpper().ToLower() | Select-Object -Unique))
+        foreach($path in $env:psmodulepath.split(';').ToUpper().ToLower())
         {
-          $fixpath += "$path\;"
+          [array]$correctDirFormat += "$path\"
         }
-        $env:psmodulepath = $fixpath.replace(';;',';').replace('\\','\')
+        $correctDirFormat = $correctDirFormat.replace("\\","\") | Select-Object -Unique
+        foreach ($path in $correctDirFormat)
+        {
+          $fixPath += "$path;"
+        }
+
+        $env:psmodulepath = $fixpath.replace(';;',';')
         $env:psmodulepath.split(';') | Sort-Object
         
         # Load module data and create array of objects containing prerequisite details
