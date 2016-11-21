@@ -77,7 +77,7 @@ deploy_script:
 
         $Configurations = Get-Command -Type Configuration
         foreach ($confToCompile in $Configurations) {
-          Invoke-Expression $confToCompile.Name -Out .\MOF\$confToCompile.Name
+          Invoke-Expression "$($confToCompile.Name) -OutPath $(.\MOF\$confToCompile.Name)"
         }
         
         $result = ls .\MOF -recurse
