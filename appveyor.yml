@@ -110,7 +110,7 @@ deploy_script:
         foreach($automationModuleToUpload in $requiredModules) {
           New-AzureRMAutomationModule -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Name $automationModuleToUpload.Name -ContentLink $automationModuleToUpload.URI -verbose 
         }
-
+        Test-Path .\MOF\WindowsDNSServer\localhost.mof
         Import-AzureRMAutomationDSCConfiguration -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Source .\MOF\WindowsDNSServer\localhost.mof -Published
 
         # TODO - standardize approach to deploying ARM template from repo handing off config name as param        
