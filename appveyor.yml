@@ -112,6 +112,7 @@ deploy_script:
         }
         ls .\MOF\WindowsDNSServer\ -recurse
         Import-AzureRMAutomationDSCNodeConfiguration -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Path 'C:\projects\windowsdnsserver-config\MOF\WindowsDNSServer\localhost.mof' -ConfigurationName 'WindowsDNSServer' -Force
+        Get-Content 'C:\projects\windowsdnsserver-config\MOF\WindowsDNSServer\localhost.mof'
 
         # TODO - standardize approach to deploying ARM template from repo handing off config name as param        
         # TODO - MVP is single VM, complete is multiple VM solution
