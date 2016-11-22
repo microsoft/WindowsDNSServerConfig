@@ -90,10 +90,10 @@ deploy_script:
         
         if (!(Resolve-Path -Path 'C:\Users\appveyor\AppData\Roaming\Windows Azure Powershell\' -ErrorAction SilentlyContinue))
         {
-          mkdir 'C:\Users\appveyor\AppData\Roaming\Windows Azure Powershell\'
+          mkdir 'C:\Users\appveyor\AppData\Roaming\Windows Azure Powershell\' | Out-Null
         }
         
-        Set-Content -Value '{"enableAzureDataCollection":true}' -Path 'C:\Users\appveyor\AppData\Roaming\Windows Azure Powershell\AzureDataCollectionProfile.json'
+        Set-Content -Value '{"enableAzureDataCollection":true}' -Path 'C:\Users\appveyor\AppData\Roaming\Windows Azure Powershell\AzureDataCollectionProfile.json' | Out-Null
         
         Add-AzureRmAccount -Credential $creds -ServicePrincipal -TenantId $env:Tenant | Out-Null
         
@@ -108,7 +108,7 @@ deploy_script:
         }
 
         foreach($automationModuleToUpload in $requiredModules) {
-          New-AzureRMAutomationModule -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Name $automationModuleToUpload.Name -ContentLink $automationModuleToUpload.URI -verbose 
+          New-AzureRMAutomationModule -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Name $automationModuleToUpload.Name -ContentLink $automationModuleToUpload.URI | Out-Null 
         }
         ls .\MOF\WindowsDNSServer\ -recurse
         Import-AzureRMAutomationDSCNodeConfiguration -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Path 'C:\projects\windowsdnsserver-config\MOF\WindowsDNSServer\localhost.mof' -ConfigurationName 'WindowsDNSServer' -Force
