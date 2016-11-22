@@ -13,7 +13,7 @@
 
     Import-DscResource -module 'xDnsServer','xNetworking', 'PSDesiredStateConfiguration'
     
-    Node $AllNodes.Where{$_.Role -eq 'DNSServer'}
+    Node $AllNodes.Where{$_.Role -eq 'DNSServer'}.NodeName
     {
         # WindowsOptionalFeature is compatible with the Nano Server installation option
         WindowsOptionalFeature DNS
@@ -36,10 +36,23 @@
                 xDnsRecord $ARecord.Key
                 {
                     Ensure    = 'Present'
-                    Name      = $Record.Key
-                    Zone      = $PrimaryZone.PrimaryZone
+                    Name      = $ARecord.Key
+                    Zone      = $Zone.PrimaryZone
                     Type      = 'ARecord'
-                    Target    = $Record.Value
+                    Target    = $ARecord.Value
+                    DependsOn = '[WindowsFeature]DNS'
+                }        
+            }
+
+            foreach ($CNameRecord in $Zone.CNameRecords)
+            {
+                xDnsRecord $CNameRecord.Key
+                {
+                    Ensure    = 'Present'
+                    Name      = $CNameRecord.Key
+                    Zone      = $Zone.PrimaryZone
+                    Type      = 'CName'
+                    Target    = $CNameRecord.Value
                     DependsOn = '[WindowsFeature]DNS'
                 }        
             }

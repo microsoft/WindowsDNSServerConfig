@@ -2,37 +2,37 @@
     AllNodes = 
     @(
         @{
-            NodeName = 'localhost'
-            Role = 'DNSServer'
-            ZoneData = 
+            NodeName            = 'localhost'
+            Role                = 'DNSServer'
+            ZoneData            = 
             @{
-                PrimaryZone = 'Contoso.com'
-                ARecords = 
+                PrimaryZone     = 'Contoso.com'
+                ARecords        = 
                 @{
-                    'ARecord1' = '10.0.0.25'
-                    'ARecord2' = '10.0.0.26'
-                    'ARecord3' = '10.0.0.27'
+                    'ARecord1'  = '10.0.0.25'
+                    'ARecord2'  = '10.0.0.26'
+                    'ARecord3'  = '10.0.0.27'
                 }
-                CNameRecords = 
+                CNameRecords    = 
                 @{
-                    'www' = 'ARecord1'
-                    'wwwtest' = 'ARecord2'
-                    'wwwqa' = 'ARecord3'
+                    'www'       = 'ARecord1'
+                    'wwwtest'   = 'ARecord2'
+                    'wwwqa'     = 'ARecord3'
                 }
             },
             @{
-                PrimaryZone = 'Fabrikam.com'
-                ARecords = 
+                PrimaryZone     = 'Fabrikam.com'
+                ARecords        = 
                 @{
-                    'ARecord1' = '10.0.0.35'
-                    'ARecord2' = '10.0.0.36'
-                    'ARecord3' = '10.0.0.37'
+                    'ARecord1'  = '10.0.0.35'
+                    'ARecord2'  = '10.0.0.36'
+                    'ARecord3'  = '10.0.0.37'
                 }
-                CNameRecords = 
+                CNameRecords    = 
                 @{
-                    'www' = 'ARecord1'
-                    'wwwtest' = 'ARecord2'
-                    'wwwqa' = 'ARecord3'
+                    'www'       = 'ARecord1'
+                    'wwwtest'   = 'ARecord2'
+                    'wwwqa'     = 'ARecord3'
                 }
             }
         }
