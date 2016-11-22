@@ -33,7 +33,7 @@
 
             foreach ($ARecord in $Zone.ARecords.Keys)
             {
-                xDnsRecord "$Zone_$ARecord"
+                xDnsRecord "$($Zone.PrimaryZone)_$ARecord"
                 {
                     Ensure    = 'Present'
                     Name      = $ARecord
@@ -46,7 +46,7 @@
 
             foreach ($CNameRecord in $Zone.CNameRecords.Keys)
             {
-                xDnsRecord "$Zone_$CNameRecord"
+                xDnsRecord "$($Zone.PrimaryZone)_$CNameRecord"
                 {
                     Ensure    = 'Present'
                     Name      = $CNameRecord
