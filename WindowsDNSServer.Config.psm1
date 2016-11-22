@@ -28,7 +28,7 @@
             {
                 Ensure    = 'Present'                
                 Name      = $Zone.PrimaryZone
-                DependsOn = '[WindowsFeature]DNS'
+                DependsOn = '[WindowsOptionalFeature]DNS'
             }
 
             foreach ($ARecord in $Zone.ARecords.Keys)
