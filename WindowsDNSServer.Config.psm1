@@ -31,28 +31,28 @@
                 DependsOn = '[WindowsFeature]DNS'
             }
 
-            foreach ($ARecord in $Zone.ARecords)
+            foreach ($ARecord in $Zone.ARecords.Keys)
             {
-                xDnsRecord $ARecord.Key
+                xDnsRecord $ARecord
                 {
                     Ensure    = 'Present'
-                    Name      = $ARecord.Key
+                    Name      = $ARecord
                     Zone      = $Zone.PrimaryZone
                     Type      = 'ARecord'
-                    Target    = $ARecord.Value
+                    Target    = $Zone.ARecords[$ARecord]
                     DependsOn = '[WindowsFeature]DNS'
                 }        
             }
 
-            foreach ($CNameRecord in $Zone.CNameRecords)
+            foreach ($CNameRecord in $Zone.CNameRecords.Keys)
             {
-                xDnsRecord $CNameRecord.Key
+                xDnsRecord $CNameRecord
                 {
                     Ensure    = 'Present'
-                    Name      = $CNameRecord.Key
+                    Name      = $CNameRecord
                     Zone      = $Zone.PrimaryZone
                     Type      = 'CName'
-                    Target    = $CNameRecord.Value
+                    Target    = $Zone.CNameRecords[$CNameRecord]
                     DependsOn = '[WindowsFeature]DNS'
                 }        
             }
