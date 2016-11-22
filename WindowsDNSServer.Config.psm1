@@ -40,7 +40,7 @@
                     Zone      = $Zone.PrimaryZone
                     Type      = 'ARecord'
                     Target    = $Zone.ARecords[$ARecord]
-                    DependsOn = '[WindowsFeature]DNS'
+                    DependsOn = "[WindowsFeature]$($Zone.PrimaryZone)"
                 }        
             }
 
@@ -53,7 +53,7 @@
                     Zone      = $Zone.PrimaryZone
                     Type      = 'CName'
                     Target    = $Zone.CNameRecords[$CNameRecord]
-                    DependsOn = '[WindowsFeature]DNS'
+                    DependsOn = "[WindowsFeature]$($Zone.PrimaryZone)"
                 }        
             }
         }
