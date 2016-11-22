@@ -124,12 +124,13 @@ deploy_script:
         # show mof content
         Get-Content 'C:\projects\windowsdnsserver-config\MOF\WindowsDNSServer\localhost.mof'
         # publish mod to service
+        Start-Sleep -Seconds 60
         Import-AzureRMAutomationDSCNodeConfiguration -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Path 'C:\projects\windowsdnsserver-config\MOF\WindowsDNSServer\localhost.mof' -ConfigurationName 'WindowsDNSServer' -Force | Out-Null
 
         # TODO - standardize approach to deploying ARM template from repo handing off config name as param        
         # TODO - MVP is single VM, complete is multiple VM solution
         # TODO - tests from demo_ci
         
-        Start-Sleep -Seconds 300
+        Start-Sleep -Seconds 600
         Remove-AzureRmResourceGroup -Name $env:APPVEYOR_PROJECT_NAME -Force
         
