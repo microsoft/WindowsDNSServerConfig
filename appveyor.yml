@@ -45,7 +45,7 @@ test_script:
 # scripts to run before deployment 
 deploy_script: 
   - ps: |
-        # Correct duplicates in psmodulepath
+        # Correct duplicates in AppVeyor environment psmodulepath
         foreach($path in $env:psmodulepath.split(';').ToUpper().ToLower())
         {
           [array]$correctDirFormat += "$path\;"
@@ -73,8 +73,10 @@ deploy_script:
           } 
         }
         
+        # Import required DSC resources
         Import-Module -Name $(".\" + $env:APPVEYOR_PROJECT_NAME + ".psm1")
 
+        # Discover configurations from module
         $Configurations = Get-Command -Type Configuration
         foreach ($confToCompile in $Configurations) {
           $confToCompileName = $confToCompile.Name
@@ -85,34 +87,43 @@ deploy_script:
         # TODO - handle configdata in an organized fashion
         # TODO - if mof, upload artifact to AADSC and AppVeyor, maybe also to GitHub?
 
+        # Log in to Azure
         $loc = 'eastus2'
         $creds = New-Object -typename System.Management.Automation.PSCredential -argumentlist $env:AppID, $(convertto-securestring -String $env:AppPass -AsPlainText -Force)
         
+        # Suppress request to share usage information
         if (!(Resolve-Path -Path 'C:\Users\appveyor\AppData\Roaming\Windows Azure Powershell\' -ErrorAction SilentlyContinue))
         {
           mkdir 'C:\Users\appveyor\AppData\Roaming\Windows Azure Powershell\' | Out-Null
         }
-        
         Set-Content -Value '{"enableAzureDataCollection":true}' -Path 'C:\Users\appveyor\AppData\Roaming\Windows Azure Powershell\AzureDataCollectionProfile.json' | Out-Null
         
         Add-AzureRmAccount -Credential $creds -ServicePrincipal -TenantId $env:Tenant | Out-Null
         
+        # Create Resource Group
         if (!(Get-AzureRmResourceGroup -Name $env:APPVEYOR_PROJECT_NAME -ErrorAction SilentlyContinue))
         {
             New-AzureRmResourceGroup -Name $env:APPVEYOR_PROJECT_NAME -Location $loc
         }
         
+        # Create Azure Automation account
         if (!(Get-AzureRMAutomationAccount -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -Name $env:APPVEYOR_PROJECT_ID -ErrorAction SilentlyContinue))
         {
           New-AzureRMAutomationAccount -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -Name $env:APPVEYOR_PROJECT_ID -Location $loc
         }
 
+        # Upload required DSC resources
         foreach($automationModuleToUpload in $requiredModules) {
           New-AzureRMAutomationModule -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Name $automationModuleToUpload.Name -ContentLink $automationModuleToUpload.URI | Out-Null 
         }
+
+        # TROUBLESHOOTING THIS SECTION
+        # verify mof was created
         ls .\MOF\WindowsDNSServer\ -recurse
-        Import-AzureRMAutomationDSCNodeConfiguration -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Path 'C:\projects\windowsdnsserver-config\MOF\WindowsDNSServer\localhost.mof' -ConfigurationName 'WindowsDNSServer' -Force
+        # show mof content
         Get-Content 'C:\projects\windowsdnsserver-config\MOF\WindowsDNSServer\localhost.mof'
+        # publish mod to service
+        Import-AzureRMAutomationDSCNodeConfiguration -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Path 'C:\projects\windowsdnsserver-config\MOF\WindowsDNSServer\localhost.mof' -ConfigurationName 'WindowsDNSServer' -Force | Out-Null
 
         # TODO - standardize approach to deploying ARM template from repo handing off config name as param        
         # TODO - MVP is single VM, complete is multiple VM solution
