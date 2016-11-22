@@ -21,7 +21,7 @@
             Ensure  = 'Enable'
             Name    = 'DNS-Server-Full-Role'
         }
-
+        <#
         foreach ($Zone in $Node.ZoneData)
         {
             xDnsServerPrimaryZone $Zone.PrimaryZone
@@ -57,5 +57,6 @@
                 }        
             }
         }
+        #>
     }
 }

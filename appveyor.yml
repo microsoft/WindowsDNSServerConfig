@@ -78,7 +78,7 @@ deploy_script:
         $Configurations = Get-Command -Type Configuration
         foreach ($confToCompile in $Configurations) {
           $confToCompileName = $confToCompile.Name
-          Invoke-Expression "$confToCompileName -OutputPath .\MOF\$confToCompileName -ConfigurationData .\Tests\ConfigData\$confToCompileName.ConfigData.psd1"
+          Invoke-Expression "$confToCompileName -OutputPath .\MOF\$confToCompileName" #-ConfigurationData .\Tests\ConfigData\$confToCompileName.ConfigData.psd1"
         }
         
         # TODO - creater array of objects to manage compiled configs
