@@ -124,7 +124,7 @@ deploy_script:
         # show mof content
         Get-Content 'C:\projects\windowsdnsserver-config\MOF\WindowsDNSServer\localhost.mof'
         # publish mod to service
-        $metaConfig = Get-AzureRmAutomationDscOnboardingMetaconfig -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -ComputerName 'Test' -OutputFolder '.\Meta' | Out-Null
+        $metaConfig = Get-AzureRmAutomationDscOnboardingMetaconfig -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -ComputerName 'Test' -OutputFolder '.\Meta' -Force | Out-Null
         Import-AzureRMAutomationDSCNodeConfiguration -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Path 'C:\projects\windowsdnsserver-config\MOF\WindowsDNSServer\localhost.mof' -ConfigurationName 'WindowsDNSServer' -Force | Out-Null
 
         # TODO - standardize approach to deploying ARM template from repo handing off config name as param        
