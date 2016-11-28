@@ -78,11 +78,6 @@ deploy_script:
 
         # Discover configurations from module
         $Configurations = Get-Command -Type Configuration
-        foreach ($confToCompile in $Configurations) {
-          # Compile configurations
-          $confToCompileName = $confToCompile.Name
-          Invoke-Expression "$confToCompileName -OutputPath .\MOF\$confToCompileName -ConfigurationData .\ConfigurationData\$confToCompileName.ConfigData.psd1"
-        }
         
         # TODO - creater array of objects to manage compiled configs
         # TODO - handle configdata in an organized fashion
@@ -119,22 +114,18 @@ deploy_script:
         }
 
         # TROUBLESHOOTING THIS SECTION
-        # verify mof was created
-        $files = ls .\MOF\WindowsDNSServer\
-        $files
-        $files.count
-        # show mof content
-        Get-Content 'C:\projects\windowsdnsserver-config\MOF\WindowsDNSServer\localhost.mof'
-        
-        # publish mod to service
-        mkdir 'C:\projects\windowsdnsserver-config\Meta\'
-        $metaConfig = Get-AzureRmAutomationDscOnboardingMetaconfig -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -ComputerName 'Test' -OutputFolder 'C:\projects\windowsdnsserver-config\Meta\' -Force | Out-Null
-        Import-AzureRMAutomationDSCNodeConfiguration -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Path 'C:\projects\windowsdnsserver-config\MOF\WindowsDNSServer\localhost.mof' -ConfigurationName 'WindowsDNSServer' -Force | Out-Null
+        foreach ($confToCompile in $Configurations) {
+          # Compile configurations
+          $confToCompileName = $confToCompile.Name
+          Invoke-Expression "$confToCompileName -OutputPath .\MOF\$confToCompileName -ConfigurationData .\ConfigurationData\$confToCompileName.ConfigData.psd1"
+          Start-AzureRmAutomationDscCompilationJob -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -ConfigurationName $confToCompileName -ConfigurationData .\ConfigurationData\$confToCompileName.ConfigData.psd1
+        }
+
+        # Import-AzureRMAutomationDSCNodeConfiguration -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Path '.\MOF\WindowsDNSServer\localhost.mof' -ConfigurationName 'WindowsDNSServer' -Force | Out-Null
 
         # TODO - standardize approach to deploying ARM template from repo handing off config name as param        
         # TODO - MVP is single VM, complete is multiple VM solution
         # TODO - tests from demo_ci
         
-        # Start-Sleep -Seconds 600
+        # Start-Sleep -Seconds 900
         # Remove-AzureRmResourceGroup -Name $env:APPVEYOR_PROJECT_NAME -Force
-        
