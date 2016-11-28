@@ -120,7 +120,9 @@ deploy_script:
 
         # TROUBLESHOOTING THIS SECTION
         # verify mof was created
-        ls .\MOF\WindowsDNSServer\ -recurse
+        $files = ls .\MOF\WindowsDNSServer\
+        $files
+        $files.count
         # show mof content
         Get-Content 'C:\projects\windowsdnsserver-config\MOF\WindowsDNSServer\localhost.mof'
         
