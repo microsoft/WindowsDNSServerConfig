@@ -119,10 +119,7 @@ deploy_script:
         foreach ($confToCompile in $Configurations) {
           # Compile configurations
           $confToCompileName = $confToCompile.Name
-          if (!($confConfigData = Import-PowerShellDataFile .\ConfigurationData\$confToCompileName.ConfigData.psd1))
-          {
-            $confConfigData = $null
-          }
+          $confConfigData = Import-PowerShellDataFile ".\ConfigurationData\$confToCompileName.ConfigData.psd1" -ErrorAction SilentlyContinue
           if (Invoke-Expression "$confToCompileName -OutputPath .\MOF\$confToCompileName -ConfigurationData $confConfigData")
           {
             Start-AzureRmAutomationDscCompilationJob -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -ConfigurationName $confToCompileName -ConfigurationData $confConfigData
