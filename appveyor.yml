@@ -76,13 +76,6 @@ deploy_script:
         # Import required DSC resources
         Import-Module -Name $(".\" + $env:APPVEYOR_PROJECT_NAME + ".psm1")
 
-        # Discover configurations from module
-        $Configurations = Get-Command -Type Configuration
-        
-        # TODO - creater array of objects to manage compiled configs
-        # TODO - handle configdata in an organized fashion
-        # TODO - if mof, upload artifact to AADSC and AppVeyor, maybe also to GitHub?
-
         # Log in to Azure
         $loc = 'eastus2'
         $creds = New-Object -typename System.Management.Automation.PSCredential -argumentlist $env:AppID, $(convertto-securestring -String $env:AppPass -AsPlainText -Force)
@@ -114,12 +107,26 @@ deploy_script:
         }
 
         # TROUBLESHOOTING THIS SECTION
+
+        # Discover configurations from module
+        $Configurations = Get-Command -Type Configuration
+        
+        # TODO - creater array of objects to manage compiled configs?
+        # TODO - handle configdata in a more organized fashion?
+        # TODO - handle no configdata
+        # TODO - how to test compile if using assets?
+
         foreach ($confToCompile in $Configurations) {
           # Compile configurations
           $confToCompileName = $confToCompile.Name
-          $confConfigData = Import-PowerShellDataFile .\ConfigurationData\$confToCompileName.ConfigData.psd1
-          Invoke-Expression "$confToCompileName -OutputPath .\MOF\$confToCompileName -ConfigurationData .\ConfigurationData\$confToCompileName.ConfigData.psd1"
-          Start-AzureRmAutomationDscCompilationJob -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -ConfigurationName $confToCompileName -ConfigurationData $confConfigData
+          if (!(Import-PowerShellDataFile .\ConfigurationData\$confToCompileName.ConfigData.psd1))
+          {
+            $confConfigData = $null
+          }
+          if (Invoke-Expression "$confToCompileName -OutputPath .\MOF\$confToCompileName -ConfigurationData $confConfigData")
+          {
+            Start-AzureRmAutomationDscCompilationJob -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -ConfigurationName $confToCompileName -ConfigurationData $confConfigData
+          }
         }
 
         # Import-AzureRMAutomationDSCNodeConfiguration -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Path '.\MOF\WindowsDNSServer\localhost.mof' -ConfigurationName 'WindowsDNSServer' -Force | Out-Null

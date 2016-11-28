@@ -21,8 +21,6 @@
             Ensure  = 'Enable'
             Name    = 'DNS-Server-Full-Role'
         }
-        <#
-        temporary debug
         
         foreach ($Zone in $Node.ZoneData)
         {
@@ -59,6 +57,5 @@
                 }        
             }
         }
-        #>
     }
 }
