@@ -142,4 +142,5 @@ deploy_script:
         # TODO - MVP is single VM, complete is multiple VM solution
         # TODO - tests from demo_ci
         
-        # Remove-AzureRmResourceGroup -Name $env:APPVEYOR_PROJECT_NAME -Force
+        Start-Sleep 600
+        Remove-AzureRmResourceGroup -Name $env:APPVEYOR_PROJECT_NAME -Force
