@@ -119,7 +119,9 @@ deploy_script:
           $confConfigData = Import-PowerShellDataFile ".\ConfigurationData\$confToCompileName.ConfigData.psd1" -ErrorAction SilentlyContinue
           if (Invoke-Expression "$confToCompileName -OutputPath .\MOF\$confToCompileName -ConfigurationData .\ConfigurationData\$confToCompileName.ConfigData.psd1")
           {
-            Start-AzureRmAutomationDscCompilationJob -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -ConfigurationName $confToCompileName -ConfigurationData $confConfigData
+            mkdir 'C:\Meta\' | Out-Null
+            Get-AzureRmAutomationDscOnboardingMetaconfig -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -ComputerName 'Test' -OutputFolder 'C:\Meta\' -Force
+            Start-AzureRmAutomationDscCompilationJob -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -ConfigurationName $confToCompileName # -ConfigurationData $confConfigData
           }
         }
         
