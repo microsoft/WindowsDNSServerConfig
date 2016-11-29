@@ -123,15 +123,15 @@ deploy_script:
             "Configuration $confToCompileName`n{" | Out-File "C:\DSC\$confToCompileName.ps1"
             $Config | Out-File "C:\DSC\$confToCompileName.ps1" -Append
             '}`n' | Out-File "C:\DSC\$confToCompileName.ps1" -Append
+
+            if (Import-AzureRmAutomationDscConfiguration -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -SourcePath "C:\DSC\$confToCompileName.ps1" -Published -Force)
+            {
+              Start-AzureRmAutomationDscCompilationJob -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -ConfigurationName $confToCompileName -ConfigurationData $confConfigData
+            }
           }
           else 
           {
             Write-Error 'No configuration was loaded.'
-          }
-
-          if (Import-AzureRmAutomationDscConfiguration -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -SourcePath "C:\DSC\$confToCompileName.ps1" -Published -Force)
-          {
-              Start-AzureRmAutomationDscCompilationJob -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -ConfigurationName $confToCompileName -ConfigurationData $confConfigData
           }
         }
         
