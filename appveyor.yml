@@ -117,7 +117,8 @@ deploy_script:
           # Compile configurations
           $confToCompileName = $confToCompile.Name
           $confConfigData = Import-PowerShellDataFile ".\ConfigurationData\$confToCompileName.ConfigData.psd1" -ErrorAction SilentlyContinue
-          if (Import-AzureRmAutomationDscConfiguration -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -SourcePath ".\$confToCompileName.Config.psm1" -Published -Force)
+          (Get-Command $confToCompileName).ScriptBlock | Out-File ".\$confToCompileName.ps1"
+          if (Import-AzureRmAutomationDscConfiguration -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -SourcePath ".\$confToCompileName.ps1" -Published -Force)
           {
               Start-AzureRmAutomationDscCompilationJob -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -ConfigurationName $confToCompileName -ConfigurationData $confConfigData
           }
