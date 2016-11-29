@@ -120,7 +120,9 @@ deploy_script:
           New-Item -Path C:\DSC -ItemType Directory -ErrorAction SilentlyContinue | Out-Null
           if ($Config = (Get-Command $confToCompileName).ScriptBlock)
           {
-            $Config | Out-File "C:\DSC\$confToCompileName.ps1"
+            "Configuration $confToCompileName`n{" | Out-File "C:\DSC\$confToCompileName.ps1"
+            $Config | Out-File "C:\DSC\$confToCompileName.ps1" -Append
+            '}`n' | Out-File "C:\DSC\$confToCompileName.ps1" -Append
           }
           else 
           {
