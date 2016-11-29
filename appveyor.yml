@@ -122,7 +122,7 @@ deploy_script:
           {
             "Configuration $confToCompileName`n{" | Out-File "C:\DSC\$confToCompileName.ps1"
             $Config | Out-File "C:\DSC\$confToCompileName.ps1" -Append
-            '}`n' | Out-File "C:\DSC\$confToCompileName.ps1" -Append
+            "}`n" | Out-File "C:\DSC\$confToCompileName.ps1" -Append
 
             if (Import-AzureRmAutomationDscConfiguration -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -SourcePath "C:\DSC\$confToCompileName.ps1" -Published -Force | Out-Null)
             {
