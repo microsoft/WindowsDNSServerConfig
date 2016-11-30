@@ -58,7 +58,8 @@ deploy_script:
         $env:psmodulepath = $fixpath.replace(';;',';')
         
         # Load module data and create array of objects containing prerequisite details for use later in Azure Automation
-        $RequiredModules = (Import-PowerShellDataFile -Path ".\$env:APPVEYOR_PROJECT_NAME.psd1").RequiredModules
+        $RequiredModules = Import-PowerShellDataFile -Path ".\$env:APPVEYOR_PROJECT_NAME.psd1"
+        $RequiredModules = $RequiredModules.RequiredModules
         $RequiredModules
         $AADSCResourceModules = @()
         foreach($RequiredModule in $RequiredModules)
