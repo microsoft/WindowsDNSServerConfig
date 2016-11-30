@@ -67,8 +67,9 @@ deploy_script:
         foreach($RequiredModule in $RequiredModules) {
           # Install latest if no version is specified
           if ($RequiredModule.gettype().Name -eq 'String')
-          write-hose "DEBUG starting module import with no version"
           {
+          write-hose "DEBUG starting module import with no version"
+            
             if (Find-Module -Name $RequiredModule)
             {
               Install-Module -Name $RequiredModule -force
@@ -76,8 +77,9 @@ deploy_script:
           }
           # Install specific version if specified
           if ($RequiredModule.gettype().Name -eq 'Hashtable')
-          write-hose "DEBUG starting module import with version"
           {
+          write-hose "DEBUG starting module import with version"
+            
             if (Find-Module -Name $RequiredModule.ModuleName -RequiredVersion $RequiredModule.ModuleVersion)
             { 
               Install-Module -Name $RequiredModule.ModuleName -RequiredVersion $RequiredModule.ModuleVersion -force
