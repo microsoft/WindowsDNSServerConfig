@@ -45,8 +45,6 @@ test_script:
 # scripts to run before deployment 
 deploy_script: 
   - ps: |
-        pushd
-
         # Correct duplicates in AppVeyor environment psmodulepath
         foreach($path in $env:psmodulepath.split(';').ToUpper().ToLower())
         {
@@ -60,15 +58,13 @@ deploy_script:
         $env:psmodulepath = $fixpath.replace(';;',';')
         $env:psmodulepath = $env:psmodulepath+'c:\projects;'
         
-        write-host "DEBUG starting resource module import"
+        
         # Load module data and create array of objects containing prerequisite details
-        $RequiredModules = (Import-PowerShellDataFile -Path ".\" + $env:APPVEYOR_PROJECT_NAME + ".psd1").RequiredModules
+        $RequiredModules = (Import-PowerShellDataFile -Path (".\" + $env:APPVEYOR_PROJECT_NAME + ".psd1")).RequiredModules
         foreach($RequiredModule in $RequiredModules) {
           # Install latest if no version is specified
           if ($RequiredModule.gettype().Name -eq 'String')
           {
-          write-host "DEBUG starting module import with no version"
-            
             if (Find-Module -Name $RequiredModule)
             {
               Install-Module -Name $RequiredModule -force
@@ -77,8 +73,6 @@ deploy_script:
           # Install specific version if specified
           if ($RequiredModule.gettype().Name -eq 'Hashtable')
           {
-          write-host "DEBUG starting module import with version"
-            
             if (Find-Module -Name $RequiredModule.ModuleName -RequiredVersion $RequiredModule.ModuleVersion)
             { 
               Install-Module -Name $RequiredModule.ModuleName -RequiredVersion $RequiredModule.ModuleVersion -force
@@ -86,10 +80,10 @@ deploy_script:
           }
         }
         
-        write-host "DEBUG starting config module import"
         # Import Configuration module DEBUGGING
-        popd
-        ls
+        $ModuleDir = New-Item -Type Folder -Path $env:ProgramFiles\WindowsPowerShell\Modules\$env:APPVEYOR_PROJECT_NAME -force
+        Copy-Item -Path .\$env:APPVEYOR_PROJECT_NAME.psd1 -Destination $ModuleDir -force
+        Copy-Item -Path .\$env:APPVEYOR_PROJECT_NAME.psm1 -Destination $ModuleDir -force
         Import-Module -Name $env:APPVEYOR_PROJECT_NAME
 
         # Log in to Azure
