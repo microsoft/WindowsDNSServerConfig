@@ -9,7 +9,7 @@
 @{
 
 # Script module or binary module file associated with this manifest.
-# RootModule = ''
+RootModule = '.\WindowsDNSServer.Config.psm1'
 
 # Version number of this module.
 ModuleVersion = '0.1.0.0'
@@ -51,8 +51,7 @@ CLRVersion = '4.0'
 # ProcessorArchitecture = ''
 
 # Modules that must be imported into the global environment prior to importing this module
-RequiredModules = @('xDNSServer', 
-               'xNetworking')
+RequiredModules = @(@{ModuleName = "xDNSServer"; ModuleVersion = "1.7.0.0"}, 'xNetworking')
 
 # Assemblies that must be loaded prior to importing this module
 # RequiredAssemblies = @()

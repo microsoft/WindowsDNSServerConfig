@@ -60,16 +60,19 @@ deploy_script:
         # Load module data and create array of objects containing prerequisite details
         $requiredModules = @()
         $moduleInformation = Import-PowerShellDataFile -Path $(".\" + $env:APPVEYOR_PROJECT_NAME + ".psd1")
-        foreach($prereqModule in $moduleInformation.RequiredModules[0]) {
+        foreach($prereqModule in $moduleInformation.RequiredModules) {
           if ($galleryReference = Invoke-RestMethod -Method Get -Uri "https://www.powershellgallery.com/api/v2/FindPackagesById()?id='$prereqModule'" -ErrorAction Continue)
           {
-            $moduleReference = New-Object -TypeName PSObject
-            $moduleReference | Add-Member -MemberType NoteProperty -Name 'Name' -Value $prereqModule
-            $moduleReference | Add-Member -MemberType NoteProperty -Name 'URI' -Value $galleryReference[$galleryReference.count-1].content.src
-            $requiredModules += $moduleReference
-
-            Install-Module -Name $prereqModule -force
-          } 
+            # Install latest if no version is specified
+            if ($prereqModule.gettype().Name -eq 'String')
+            {
+              Install-Module -Name $prereqModule -force
+            }
+            # Install specific version if specified
+            if ($prereqModule.gettype().Name -eq 'Hashtable')
+            {
+              Install-Module -Name $prereqModule.ModuleName -RequiredVersion $prereqModule.ModuleVersion -force
+            }
         }
         
         # Import required DSC resources
