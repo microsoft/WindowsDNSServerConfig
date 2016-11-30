@@ -47,6 +47,7 @@ deploy_script:
   - ps: |
         pushd
 
+        write-hose "DEBUG starting psmodulepath correction"
         # Correct duplicates in AppVeyor environment psmodulepath
         foreach($path in $env:psmodulepath.split(';').ToUpper().ToLower())
         {
@@ -58,12 +59,15 @@ deploy_script:
           [string]$fixPath += "$path;"
         }
         $env:psmodulepath = $fixpath.replace(';;',';')
+        $env:psmodulepath = $env:psmodulepath+'c:\projects;'
         
+        write-hose "DEBUG starting resource module import"
         # Load module data and create array of objects containing prerequisite details
         $RequiredModules = Import-PowerShellDataFile -Path $(".\" + $env:APPVEYOR_PROJECT_NAME + ".psd1").RequiredModules
         foreach($RequiredModule in $RequiredModules) {
           # Install latest if no version is specified
           if ($RequiredModule.gettype().Name -eq 'String')
+          write-hose "DEBUG starting module import with no version"
           {
             if (Find-Module -Name $RequiredModule)
             {
@@ -72,6 +76,7 @@ deploy_script:
           }
           # Install specific version if specified
           if ($RequiredModule.gettype().Name -eq 'Hashtable')
+          write-hose "DEBUG starting module import with version"
           {
             if (Find-Module -Name $RequiredModule.ModuleName -RequiredVersion $RequiredModule.ModuleVersion)
             { 
@@ -80,6 +85,7 @@ deploy_script:
           }
         }
         
+        write-hose "DEBUG starting config module import"
         # Import Configuration module DEBUGGING
         popd
         ls
