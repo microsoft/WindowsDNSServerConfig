@@ -59,27 +59,38 @@ deploy_script:
         $env:psmodulepath = $env:psmodulepath+'c:\projects;'
         
         
-        # Load module data and create array of objects containing prerequisite details
+        # Load module data and create array of objects containing prerequisite details for use later in Azure Automation
         $RequiredModules = (Import-PowerShellDataFile -Path (".\" + $env:APPVEYOR_PROJECT_NAME + ".psd1")).RequiredModules
-        foreach($RequiredModule in $RequiredModules) {
-          # Install latest if no version is specified
-          if ($RequiredModule.gettype().Name -eq 'String')
-          {
-            if (Find-Module -Name $RequiredModule)
+        $AADSCResourceModules = @()
+        foreach($RequiredModule in $RequiredModules)
+        {
+            $ModuleReference = New-Object -TypeName PSObject
+
+            # Latest if no version is specified
+            if ($RequiredModule.gettype().Name -eq 'String')
             {
+              if ($galleryReference = Invoke-RestMethod -Method Get -Uri "https://www.powershellgallery.com/api/v2/FindPackagesById()?id='$RequiredModule'" -ErrorAction Continue)
+              {
+                $ModuleReference | Add-Member -MemberType NoteProperty -Name 'Name' -Value $RequiredModule
+                $ModuleReference | Add-Member -MemberType NoteProperty -Name 'URI' -Value ($galleryReference | ? {$_.Properties.IsLatestVersion.'#text' -eq $true}).content.src
+                $AADSCResourceModules += $ModuleReference
+              }
               Install-Module -Name $RequiredModule -force
             }
-          }
-          # Install specific version if specified
-          if ($RequiredModule.gettype().Name -eq 'Hashtable')
-          {
-            if (Find-Module -Name $RequiredModule.ModuleName -RequiredVersion $RequiredModule.ModuleVersion)
-            { 
+
+            # Install specific version if specified
+            if ($RequiredModule.gettype().Name -eq 'Hashtable')
+            {
+              if ($galleryReference = Invoke-RestMethod -Method Get -Uri "https://www.powershellgallery.com/api/v2/FindPackagesById()?id='$($RequiredModule.ModuleName)'" -ErrorAction Continue)
+              {
+                $ModuleReference | Add-Member -MemberType NoteProperty -Name 'Name' -Value $RequiredModule.ModuleName
+                $ModuleReference | Add-Member -MemberType NoteProperty -Name 'URI' -Value ($galleryReference | ? {$_.Properties.Version -eq $RequiredModule.ModuleVersion}).content.src
+                $AADSCResourceModules += $ModuleReference
+              }
               Install-Module -Name $RequiredModule.ModuleName -RequiredVersion $RequiredModule.ModuleVersion -force
             }
-          }
         }
-        
+                
         # Import Configuration module DEBUGGING
         if ($ModuleDir = New-Item -Type Directory -Path $env:ProgramFiles\WindowsPowerShell\Modules\$env:APPVEYOR_PROJECT_NAME -force)
         {
@@ -114,10 +125,10 @@ deploy_script:
         }
 
         # Upload required DSC resources
-        foreach($automationModuleToUpload in $requiredModules) {
-          if (!(Get-AzureRMAutomationModule -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Name $automationModuleToUpload.Name -ErrorAction SilentlyContinue))
+        foreach($AADSCModuleToUpload in $AADSCResourceModules) {
+          if (!(Get-AzureRMAutomationModule -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Name $AADSCModuleToUpload.Name -ErrorAction SilentlyContinue))
           {
-            New-AzureRMAutomationModule -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Name $automationModuleToUpload.Name -ContentLink $automationModuleToUpload.URI | Out-Null 
+            New-AzureRMAutomationModule -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Name $AADSCModuleToUpload.Name -ContentLink $AADSCModuleToUpload.URI | Out-Null 
           }
         }
 
