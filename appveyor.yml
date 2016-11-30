@@ -64,8 +64,9 @@ deploy_script:
         foreach($RequiredModule in $RequiredModules)
         {
           $RequiredModule
-          $typedebug = $RequiredModule.gettype().name | out-string
-          Write-Host "DEBUG: $typedebug"
+          Write-Host "DEBUG:"
+          $RequiredModule.gettype().name
+          $RequiredModule.gettype().name -eq 'String'
             $ModuleReference = New-Object -TypeName PSObject
             # Latest if no version is specified
             if ($RequiredModule.gettype().Name -eq 'String')
