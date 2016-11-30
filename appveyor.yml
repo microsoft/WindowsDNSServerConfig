@@ -73,6 +73,7 @@ deploy_script:
             {
               Install-Module -Name $prereqModule.ModuleName -RequiredVersion $prereqModule.ModuleVersion -force
             }
+          }
         }
         
         # Import required DSC resources
