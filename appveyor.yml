@@ -78,8 +78,8 @@ deploy_script:
           }
         }
         
-        # Import required DSC resources
-        Import-Module -Name $(".\" + $env:APPVEYOR_PROJECT_NAME + ".psm1")
+        # Import Configuration module
+        Import-Module -Name $env:APPVEYOR_PROJECT_NAME
 
         # Log in to Azure
         $loc = 'eastus2'
@@ -117,22 +117,26 @@ deploy_script:
         # TROUBLESHOOTING THIS SECTION
 
         # Discover configurations from module
-        $Configurations = Get-Command -Type Configuration
+        $Configurations = Get-Command -module $env:APPVEYOR_PROJECT_NAME -Type Configuration
         
         foreach ($confToCompile in $Configurations) {
-          # Compile configurations
-          $confToCompileName = $confToCompile.Name
+          
+          $confName = $confToCompile.Name
           $confConfigData = Import-PowerShellDataFile ".\ConfigurationData\$confToCompileName.ConfigData.psd1" -ErrorAction SilentlyContinue
+          
+          # Create working folder
           New-Item -Path C:\DSC -ItemType Directory -ErrorAction SilentlyContinue | Out-Null
-          if ($Config = (Get-Command $confToCompileName).ScriptBlock)
+          
+          # Create one script per configuration with matching name
+          if ($Config = (Get-Command $confName).ScriptBlock)
           {
-            "Configuration $confToCompileName`n{" | Out-File "C:\DSC\$confToCompileName.ps1"
-            $Config | Out-File "C:\DSC\$confToCompileName.ps1" -Append
-            "}`n" | Out-File "C:\DSC\$confToCompileName.ps1" -Append
+            "Configuration $confName`n{" | Out-File "C:\DSC\$confName.ps1"
+            $Config | Out-File "C:\DSC\$confName.ps1" -Append
+            "}`n" | Out-File "C:\DSC\$confName.ps1" -Append
 
-            if (Import-AzureRmAutomationDscConfiguration -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -SourcePath "C:\DSC\$confToCompileName.ps1" -Published -Force | Out-Null)
+            if (Import-AzureRmAutomationDscConfiguration -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -SourcePath "C:\DSC\$confName.ps1" -Published -Force | Out-Null)
             {
-              Start-AzureRmAutomationDscCompilationJob -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -ConfigurationName $confToCompileName -ConfigurationData $confConfigData | Out-Null
+              Start-AzureRmAutomationDscCompilationJob -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -ConfigurationName $confName -ConfigurationData $confConfigData | Out-Null
             }
           }
           else 
