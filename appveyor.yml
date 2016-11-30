@@ -81,7 +81,7 @@ deploy_script:
         }
         
         # Import Configuration module DEBUGGING
-        $ModuleDir = New-Item -Type Folder -Path $env:ProgramFiles\WindowsPowerShell\Modules\$env:APPVEYOR_PROJECT_NAME -force
+        $ModuleDir = New-Item -Type Directory -Path $env:ProgramFiles\WindowsPowerShell\Modules\$env:APPVEYOR_PROJECT_NAME -force
         Copy-Item -Path .\$env:APPVEYOR_PROJECT_NAME.psd1 -Destination $ModuleDir -force
         Copy-Item -Path .\$env:APPVEYOR_PROJECT_NAME.psm1 -Destination $ModuleDir -force
         Import-Module -Name $env:APPVEYOR_PROJECT_NAME
