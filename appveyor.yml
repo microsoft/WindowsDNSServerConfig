@@ -59,7 +59,7 @@ deploy_script:
         
         # Load module data and create array of objects containing prerequisite details for use later in Azure Automation
         $ModuleData = Import-PowerShellDataFile -Path ".\$env:APPVEYOR_PROJECT_NAME.psd1"
-        $RequiredModules = $ModuleData.RequiredModules
+        $RequiredModules = $ModuleData[0].RequiredModules
         $AADSCResourceModules = @()
         foreach($RequiredModule in $RequiredModules)
         {
