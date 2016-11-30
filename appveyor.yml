@@ -59,10 +59,11 @@ deploy_script:
         
         # Load module data and create array of objects containing prerequisite details for use later in Azure Automation
         $RequiredModules = (Import-PowerShellDataFile -Path ".\$env:APPVEYOR_PROJECT_NAME.psd1").RequiredModules
+        $RequiredModules
         $AADSCResourceModules = @()
         foreach($RequiredModule in $RequiredModules)
         {
-          Write-Host "DEBUG: $($RequiredModule.gettype())"
+          Write-Host "DEBUG: $($RequiredModule.gettype().name)"
             $ModuleReference = New-Object -TypeName PSObject
             # Latest if no version is specified
             if ($RequiredModule.gettype().Name -eq 'String')
@@ -73,6 +74,7 @@ deploy_script:
                 $ModuleReference | Add-Member -MemberType NoteProperty -Name 'URI' -Value ($galleryReference | ? {$_.Properties.IsLatestVersion.'#text' -eq $true}).content.src
                 $AADSCResourceModules += $ModuleReference
               }
+              write-host "DEBUG: Install-Module -Name $RequiredModule -force"
               Install-Module -Name $RequiredModule -force
             }
 
@@ -85,6 +87,7 @@ deploy_script:
                 $ModuleReference | Add-Member -MemberType NoteProperty -Name 'URI' -Value ($galleryReference | ? {$_.Properties.Version -eq $RequiredModule.ModuleVersion}).content.src
                 $AADSCResourceModules += $ModuleReference
               }
+              Write-Host "DEBUG: Install-Module -Name $($RequiredModule.ModuleName) -RequiredVersion $($RequiredModule.ModuleVersion) -force"
               Install-Module -Name $RequiredModule.ModuleName -RequiredVersion $RequiredModule.ModuleVersion -force
             }
         }
