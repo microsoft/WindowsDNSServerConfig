@@ -45,6 +45,8 @@ test_script:
 # scripts to run before deployment 
 deploy_script: 
   - ps: |
+        pushd
+
         # Correct duplicates in AppVeyor environment psmodulepath
         foreach($path in $env:psmodulepath.split(';').ToUpper().ToLower())
         {
@@ -78,7 +80,9 @@ deploy_script:
           }
         }
         
-        # Import Configuration module
+        # Import Configuration module DEBUGGING
+        popd
+        ls
         Import-Module -Name $env:APPVEYOR_PROJECT_NAME
 
         # Log in to Azure
@@ -114,11 +118,10 @@ deploy_script:
           }
         }
 
-        # TROUBLESHOOTING THIS SECTION
-
         # Discover configurations from module
         $Configurations = Get-Command -module $env:APPVEYOR_PROJECT_NAME -Type Configuration
         
+        # Create configuration scripts and import to Azure Automation
         foreach ($confToCompile in $Configurations) {
           
           $confName = $confToCompile.Name
@@ -134,6 +137,7 @@ deploy_script:
             $Config | Out-File "C:\DSC\$confName.ps1" -Append
             "}`n" | Out-File "C:\DSC\$confName.ps1" -Append
 
+            # Import
             if (Import-AzureRmAutomationDscConfiguration -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -SourcePath "C:\DSC\$confName.ps1" -Published -Force | Out-Null)
             {
               Start-AzureRmAutomationDscCompilationJob -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -ConfigurationName $confName -ConfigurationData $confConfigData | Out-Null
@@ -145,7 +149,6 @@ deploy_script:
           }
         }
         
-        # TODO - test when a module version is specified in the requirements
         # TODO - handle no configdata through splatting
         # TODO - eliminate local compile
         # TODO - standardize approach to deploying ARM template from repo handing off config name as param        
