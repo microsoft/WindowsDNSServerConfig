@@ -47,7 +47,6 @@ deploy_script:
   - ps: |
         pushd
 
-        write-host "DEBUG starting psmodulepath correction"
         # Correct duplicates in AppVeyor environment psmodulepath
         foreach($path in $env:psmodulepath.split(';').ToUpper().ToLower())
         {
@@ -63,7 +62,7 @@ deploy_script:
         
         write-host "DEBUG starting resource module import"
         # Load module data and create array of objects containing prerequisite details
-        $RequiredModules = Import-PowerShellDataFile -Path $(".\" + $env:APPVEYOR_PROJECT_NAME + ".psd1").RequiredModules
+        $RequiredModules = (Import-PowerShellDataFile -Path ".\" + $env:APPVEYOR_PROJECT_NAME + ".psd1").RequiredModules
         foreach($RequiredModule in $RequiredModules) {
           # Install latest if no version is specified
           if ($RequiredModule.gettype().Name -eq 'String')
