@@ -152,8 +152,12 @@ deploy_script:
             # The resource modules must finish the "Creating" stage before the configuration will compile successfully
             foreach ($AADSCImportedModule in $AADSCImportedModules)
             {
-              while ((Get-AzureRMAutomationModule -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Name $AADSCImportedModule.Name).ProvisioningState -eq 'Creating')
-              {
+              while ((Get-AzureRMAutomationModule -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Name $AADSCImportedModule.Name).ProvisioningState -ne 'Available')
+              { 
+                $DebugMod = Get-AzureRMAutomationModule -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Name $AADSCImportedModule.Name
+                $ModName = $DebugMod.Name
+                $ModState = $DebugMod.ProvisioningState
+                Write-Host "DEBUG: THe module $ModName is in state $ModState"
                 Start-Sleep -Seconds 5
               }
             }
