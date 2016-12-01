@@ -149,10 +149,13 @@ deploy_script:
             "}`n" | Out-File "C:\DSC\$confName.ps1" -Append
 
             # Import
-            if (Import-AzureRmAutomationDscConfiguration -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -SourcePath "C:\DSC\$confName.ps1" -Published -Force | Out-Null)
+            if ($AADSCImport = Import-AzureRmAutomationDscConfiguration -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -SourcePath "C:\DSC\$confName.ps1" -Published -Force | Out-Null)
             {
-              Start-AzureRmAutomationDscCompilationJob -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -ConfigurationName $confName -ConfigurationData $confConfigData | Out-Null
+              $AADSCImport
+              $AADSCCompile = Start-AzureRmAutomationDscCompilationJob -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -ConfigurationName $confName -ConfigurationData $confConfigData | Out-Null
             }
+            $AADSCImport
+            $AADSCCompile
           }
           else 
           {
@@ -161,7 +164,6 @@ deploy_script:
         }
         
         # TODO - handle no configdata through splatting
-        # TODO - eliminate local compile
         # TODO - standardize approach to deploying ARM template from repo handing off config name as param        
         # TODO - MVP is single VM, complete is multiple VM solution
         # TODO - tests from demo_ci
