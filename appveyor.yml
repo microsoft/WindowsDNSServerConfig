@@ -134,7 +134,6 @@ deploy_script:
         foreach ($confToCompile in $Configurations) {
           
           $confName = $confToCompile.Name
-          $confConfigData = Import-PowerShellDataFile ".\ConfigurationData\$confToCompileName.ConfigData.psd1" -ErrorAction SilentlyContinue
           
           # Create working folder
           New-Item -Path C:\DSC -ItemType Directory -ErrorAction SilentlyContinue | Out-Null
@@ -163,9 +162,9 @@ deploy_script:
             }
 
             # Compile
+            $confConfigData = Import-PowerShellDataFile ".\ConfigurationData\$confName.ConfigData.psd1" -ErrorAction SilentlyContinue         
             $AADSCCompile = Start-AzureRmAutomationDscCompilationJob -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -ConfigurationName $AADSCImport.Name -ConfigurationData $confConfigData
             
-            $AADSCCompile
           }
           else 
           {
