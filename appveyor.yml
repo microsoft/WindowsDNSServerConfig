@@ -122,12 +122,15 @@ deploy_script:
         }
 
         # Upload required DSC resources
+        $AADSCModules = @()
         foreach($AADSCModuleToUpload in $AADSCResourceModules) {
           if (!(Get-AzureRMAutomationModule -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Name $AADSCModuleToUpload.Name -ErrorAction SilentlyContinue))
           {
-            New-AzureRMAutomationModule -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Name $AADSCModuleToUpload.Name -ContentLink $AADSCModuleToUpload.URI | Out-Null 
+            $AADSCModules += New-AzureRMAutomationModule -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Name $AADSCModuleToUpload.Name -ContentLink $AADSCModuleToUpload.URI 
           }
         }
+
+        $AADSCModules
 
         # Discover configurations from module
         $Configurations = Get-Command -module $env:APPVEYOR_PROJECT_NAME -Type Configuration
@@ -149,8 +152,8 @@ deploy_script:
             "}`n" | Out-File "C:\DSC\$confName.ps1" -Append
 
             # Import
-            $AADSCImport = Import-AzureRmAutomationDscConfiguration -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -SourcePath "C:\DSC\$confName.ps1" -Published -Force | Out-Null
-            $AADSCCompile = Start-AzureRmAutomationDscCompilationJob -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -ConfigurationName $confName -ConfigurationData $confConfigData | Out-Null
+            $AADSCImport = Import-AzureRmAutomationDscConfiguration -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -SourcePath "C:\DSC\$confName.ps1" -Published -Force
+            $AADSCCompile = Start-AzureRmAutomationDscCompilationJob -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -ConfigurationName $confName -ConfigurationData $confConfigData
             
             $AADSCImport
             $AADSCCompile
