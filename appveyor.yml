@@ -153,17 +153,18 @@ deploy_script:
             {
               while ((Get-AzureRMAutomationModule -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Name $AADSCImportedModule.Name).ProvisioningState -ne 'Succeeded')
               { 
-                $DebugMod = Get-AzureRMAutomationModule -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Name $AADSCImportedModule.Name
-                $ModName = $DebugMod.Name
-                $ModState = $DebugMod.ProvisioningState
-                Write-Host "DEBUG: THe module $ModName is in state $ModState"
-                Start-Sleep -Seconds 5
+                Start-Sleep -Seconds 10
               }
             }
 
             # Compile
-            $confConfigData = Import-PowerShellDataFile ".\ConfigurationData\$confName.ConfigData.psd1" -ErrorAction SilentlyContinue         
-            $AADSCCompile = Start-AzureRmAutomationDscCompilationJob -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -ConfigurationName $AADSCImport.Name -ConfigurationData $confConfigData
+            $CompileParams = @{
+              ResourceGroupName     = $env:APPVEYOR_PROJECT_NAME
+              AutomationAccountName = $env:APPVEYOR_PROJECT_ID
+              ConfigurationName     = $AADSCImport.Name
+              ConfigurationData     = Import-PowerShellDataFile ".\ConfigurationData\$confName.ConfigData.psd1" -ErrorAction SilentlyContinue
+            }         
+            $AADSCCompile = Start-AzureRmAutomationDscCompilationJob @CompileParams
             
           }
           else 

@@ -1,17 +1,17 @@
-﻿configuration WindowsDNSServer
+﻿configuration WindowsDNSServerWithZones
 {
     <#
         .DESCRIPTION
-        Basic configuration for Windows DNS Server
+        Basic configuration for Windows DNS Server with zones and records
 
         .EXAMPLE
         WindowsDNSServer -outpath c:\dsc\
 
         .NOTES
-        This is the most basic configuration and does not take parameters or configdata
+        This configuration requires the corresponding configdata file
     #>
 
-    Import-DscResource -module 'xDnsServer','xNetworking', 'PSDesiredStateConfiguration'
+    Import-DscResource -module 'xDnsServer', 'PSDesiredStateConfiguration'
     
     Node $AllNodes.Where{$_.Role -eq 'DNSServer'}.NodeName
     {
@@ -56,6 +56,32 @@
                     DependsOn = "[WindowsOptionalFeature]DNS","[xDnsServerPrimaryZone]$($Zone.PrimaryZone)"
                 }        
             }
+        }
+    }
+}
+
+configuration WindowsDNSServerBasic
+{
+    <#
+        .DESCRIPTION
+        Basic configuration for Windows DNS Server with no zones created
+
+        .EXAMPLE
+        WindowsDNSServer -outpath c:\dsc\
+
+        .NOTES
+        This is the most basic configuration and does not take parameters or configdata
+    #>
+
+    Import-DscResource -module 'PSDesiredStateConfiguration'
+    
+    Node localhost
+    {
+        # WindowsOptionalFeature is compatible with the Nano Server installation option
+        WindowsOptionalFeature DNS
+        {
+            Ensure  = 'Enable'
+            Name    = 'DNS-Server-Full-Role'
         }
     }
 }
