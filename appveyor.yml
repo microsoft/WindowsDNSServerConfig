@@ -149,11 +149,9 @@ deploy_script:
             "}`n" | Out-File "C:\DSC\$confName.ps1" -Append
 
             # Import
-            if ($AADSCImport = Import-AzureRmAutomationDscConfiguration -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -SourcePath "C:\DSC\$confName.ps1" -Published -Force | Out-Null)
-            {
-              $AADSCImport
-              $AADSCCompile = Start-AzureRmAutomationDscCompilationJob -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -ConfigurationName $confName -ConfigurationData $confConfigData | Out-Null
-            }
+            $AADSCImport = Import-AzureRmAutomationDscConfiguration -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -SourcePath "C:\DSC\$confName.ps1" -Published -Force | Out-Null
+            $AADSCCompile = Start-AzureRmAutomationDscCompilationJob -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -ConfigurationName $confName -ConfigurationData $confConfigData | Out-Null
+            
             $AADSCImport
             $AADSCCompile
           }
