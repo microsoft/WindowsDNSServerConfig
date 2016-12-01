@@ -88,14 +88,6 @@ deploy_script:
             }
         }
                 
-        # Import Configuration module DEBUGGING
-        if ($ModuleDir = New-Item -Type Directory -Path $env:ProgramFiles\WindowsPowerShell\Modules\$env:APPVEYOR_PROJECT_NAME -force)
-        {
-          Copy-Item -Path .\$env:APPVEYOR_PROJECT_NAME.psd1 -Destination $ModuleDir -force
-          Copy-Item -Path .\$env:APPVEYOR_PROJECT_NAME.psm1 -Destination $ModuleDir -force
-        }
-        Import-Module -Name $env:APPVEYOR_PROJECT_NAME
-
         # Log in to Azure
         $loc = 'eastus2'
         $creds = New-Object -typename System.Management.Automation.PSCredential -argumentlist $env:AppID, $(convertto-securestring -String $env:AppPass -AsPlainText -Force)
@@ -124,16 +116,16 @@ deploy_script:
         # Upload required DSC resources
         $AADSCImportedModules = @()
         foreach($AADSCModuleToUpload in $AADSCResourceModules) {
-          $AADSCModules += New-AzureRMAutomationModule -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Name $AADSCModuleToUpload.Name -ContentLink $AADSCModuleToUpload.URI -Force
+          $AADSCImportedModules += New-AzureRMAutomationModule -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Name $AADSCModuleToUpload.Name -ContentLink $AADSCModuleToUpload.URI
         }
 
-        foreach ($AADSCImportedModule in $AADSCImportedModules)
+        # Import Configuration module
+        if ($ModuleDir = New-Item -Type Directory -Path $env:ProgramFiles\WindowsPowerShell\Modules\$env:APPVEYOR_PROJECT_NAME -force)
         {
-          while ((Get-AzureRMAutomationModule -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Name $AADSCImportedModule.Name).ProvisioningState -eq 'Creating')
-          {
-            Start-Sleep -Seconds 5
-          }
+          Copy-Item -Path .\$env:APPVEYOR_PROJECT_NAME.psd1 -Destination $ModuleDir -force
+          Copy-Item -Path .\$env:APPVEYOR_PROJECT_NAME.psm1 -Destination $ModuleDir -force
         }
+        Import-Module -Name $env:APPVEYOR_PROJECT_NAME
 
         # Discover configurations from module
         $Configurations = Get-Command -module $env:APPVEYOR_PROJECT_NAME -Type Configuration
@@ -156,6 +148,17 @@ deploy_script:
 
             # Import
             $AADSCImport = Import-AzureRmAutomationDscConfiguration -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -SourcePath "C:\DSC\$confName.ps1" -Published -Force
+
+            # The resource modules must finish the "Creating" stage before the configuration will compile successfully
+            foreach ($AADSCImportedModule in $AADSCImportedModules)
+            {
+              while ((Get-AzureRMAutomationModule -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Name $AADSCImportedModule.Name).ProvisioningState -eq 'Creating')
+              {
+                Start-Sleep -Seconds 5
+              }
+            }
+
+            # Compile
             $AADSCCompile = Start-AzureRmAutomationDscCompilationJob -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -ConfigurationName $AADSCImport.Name -ConfigurationData $confConfigData
             
             $AADSCCompile
