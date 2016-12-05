@@ -162,10 +162,19 @@ deploy_script:
               ResourceGroupName     = $env:APPVEYOR_PROJECT_NAME
               AutomationAccountName = $env:APPVEYOR_PROJECT_ID
               ConfigurationName     = $AADSCImport.Name
-              ConfigurationData     = Import-PowerShellDataFile ".\ConfigurationData\$confName.ConfigData.psd1" -ErrorAction SilentlyContinue
+              ConfigurationData     = Import-PowerShellDataFile "c:\Projects\$env:APPVEYOR_PROJECT_NAME\ConfigurationData\$confName.ConfigData.psd1" -ErrorAction SilentlyContinue
             }         
-            $AADSCCompile = Start-AzureRmAutomationDscCompilationJob @CompileParams
-            
+            $AADSCCompile = Start-AzureRmAutomationDscCompilationJob @CompileParams -Verbose
+
+            # Deploy
+            $DeployParams = @{
+              ResourceGroupName     = $env:APPVEYOR_PROJECT_NAME
+              Name                  = $confName
+              TemplateFile          = '.\Tests\Deployment\azuredeploy.json'
+              TemplateParameterFile = '.\Tests\Deployment\azuredeploy.parameters.json'
+              
+            }
+            # $IaaSDeployment = New-AzureRMResourceGroupDeployment @DeployParams
           }
           else 
           {
@@ -173,7 +182,6 @@ deploy_script:
           }
         }
         
-        # TODO - handle no configdata through splatting
         # TODO - standardize approach to deploying ARM template from repo handing off config name as param        
         # TODO - MVP is single VM, complete is multiple VM solution
         # TODO - tests from demo_ci
