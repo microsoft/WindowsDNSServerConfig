@@ -158,13 +158,17 @@ deploy_script:
             }
 
             # Compile
+            $ConfigurationData = if (Resolve-Path "c:\Projects\$env:APPVEYOR_PROJECT_NAME\ConfigurationData\$confName.ConfigData.psd1" -ErrorAction SilentlyContinue)
+            {
+                Import-PowerShellDataFile "c:\Projects\$env:APPVEYOR_PROJECT_NAME\ConfigurationData\$confName.ConfigData.psd1"
+            }
             $CompileParams = @{
               ResourceGroupName     = $env:APPVEYOR_PROJECT_NAME
               AutomationAccountName = $env:APPVEYOR_PROJECT_ID
               ConfigurationName     = $AADSCImport.Name
-              ConfigurationData     = Import-PowerShellDataFile "c:\Projects\$env:APPVEYOR_PROJECT_NAME\ConfigurationData\$confName.ConfigData.psd1" -ErrorAction SilentlyContinue
+              ConfigurationData     = $ConfigurationData
             }         
-            $AADSCCompile = Start-AzureRmAutomationDscCompilationJob @CompileParams -Verbose
+            Start-AzureRmAutomationDscCompilationJob @CompileParams -Verbose
 
             # Deploy
             $DeployParams = @{
