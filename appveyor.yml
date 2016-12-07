@@ -3,11 +3,11 @@
 #---------------------------------#
 version: 1.0.{build}.0
 environment:
-  AppID:
+  AppplicationID:
     secure: IJBqnB6WjtDi3ej/zy2D70Ry1AvJOrlZK5BhSoqEdxNENd0CL9qdMJndbi6p+di3
-  AppPass:
+  ApplicationPassword:
     secure: b8lT719n/ll0Bp5SloBvzw==
-  Tenant:
+  TenantID:
     secure: J/my7xsOE9jewR0DDhD+EU5jeo5Bp83/nmIK8a8QI0QLoZXStCOtk1vUjVsKylW2
 install:
   - git clone https://github.com/Microsoft/WindowsDNSServer.Config
