@@ -13,7 +13,7 @@
 
     Import-DscResource -module 'xDnsServer', 'PSDesiredStateConfiguration'
     
-    Node $AllNodes.Where{$_.Role -eq 'DNSServer'}.NodeName
+    Node $AllNodes.NodeName
     {
         # WindowsOptionalFeature is compatible with the Nano Server installation option
         WindowsOptionalFeature DNS
