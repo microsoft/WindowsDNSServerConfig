@@ -158,9 +158,9 @@ deploy_script:
             }
 
             # Compile
-            $ConfigurationData = if (Resolve-Path "c:\Projects\$env:APPVEYOR_PROJECT_NAME\ConfigurationData\$confName.ConfigData.psd1" -ErrorAction SilentlyContinue)
+            if (Resolve-Path "c:\Projects\$env:APPVEYOR_PROJECT_NAME\ConfigurationData\$confName.ConfigData.psd1" -ErrorAction SilentlyContinue)
             {
-                Import-PowerShellDataFile "c:\Projects\$env:APPVEYOR_PROJECT_NAME\ConfigurationData\$confName.ConfigData.psd1"
+                $ConfigurationData = Import-PowerShellDataFile "c:\Projects\$env:APPVEYOR_PROJECT_NAME\ConfigurationData\$confName.ConfigData.psd1"
             }
 
             $CompileParams = @{
@@ -169,8 +169,6 @@ deploy_script:
               ConfigurationName     = $AADSCImport.Name
               ConfigurationData     = $ConfigurationData
             }
-
-            write-host $CompileParams.ConfigurationData
 
             $Compile = Start-AzureRmAutomationDscCompilationJob @CompileParams
 
