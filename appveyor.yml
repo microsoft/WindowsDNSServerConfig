@@ -162,13 +162,17 @@ deploy_script:
             {
                 Import-PowerShellDataFile "c:\Projects\$env:APPVEYOR_PROJECT_NAME\ConfigurationData\$confName.ConfigData.psd1"
             }
+
             $CompileParams = @{
               ResourceGroupName     = $env:APPVEYOR_PROJECT_NAME
               AutomationAccountName = $env:APPVEYOR_PROJECT_ID
               ConfigurationName     = $AADSCImport.Name
               ConfigurationData     = $ConfigurationData
-            }         
-            Start-AzureRmAutomationDscCompilationJob @CompileParams
+            }
+
+            write-host $CompileParams.ConfigurationData.AllNodes.NodeName
+
+            $Compile = Start-AzureRmAutomationDscCompilationJob @CompileParams
 
             # Deploy
             $DeployParams = @{
