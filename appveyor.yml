@@ -158,9 +158,9 @@ deploy_script:
             }
 
             # Compile
-            if (Test-Path "c:\Projects\$env:APPVEYOR_PROJECT_NAME\ConfigurationData\$confName.ConfigData.psd1")
+            if (Test-Path ".\ConfigurationData\$confName.ConfigData.psd1")
             {
-                $ConfigurationData = Import-PowerShellDataFile "c:\Projects\$env:APPVEYOR_PROJECT_NAME\ConfigurationData\$confName.ConfigData.psd1"
+                $ConfigurationData = Import-PowerShellDataFile ".\ConfigurationData\$confName.ConfigData.psd1"
             }
 
             $CompileParams = @{
