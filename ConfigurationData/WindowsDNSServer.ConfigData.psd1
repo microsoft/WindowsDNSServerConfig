@@ -1,7 +1,7 @@
 @{
     AllNodes = @(
         @{
-            NodeName            = 'localhost';
+            NodeName            = 'dns1';
             Role                = 'DNSServer';
             ZoneData            = 
             @{
