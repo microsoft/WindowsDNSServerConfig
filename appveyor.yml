@@ -158,7 +158,7 @@ deploy_script:
             }
 
             # Compile
-            if (Resolve-Path "c:\Projects\$env:APPVEYOR_PROJECT_NAME\ConfigurationData\$confName.ConfigData.psd1")
+            if (Test-Path "c:\Projects\$env:APPVEYOR_PROJECT_NAME\ConfigurationData\$confName.ConfigData.psd1")
             {
                 $ConfigurationData = Import-PowerShellDataFile "c:\Projects\$env:APPVEYOR_PROJECT_NAME\ConfigurationData\$confName.ConfigData.psd1"
             }
