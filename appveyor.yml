@@ -170,7 +170,7 @@ deploy_script:
               ConfigurationData     = $ConfigurationData
             }
 
-            write-host $CompileParams.ConfigurationData.AllNodes.NodeName
+            write-host $CompileParams.ConfigurationData
 
             $Compile = Start-AzureRmAutomationDscCompilationJob @CompileParams
 
