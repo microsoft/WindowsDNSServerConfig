@@ -14,7 +14,7 @@ install:
   - git clone https://github.com/PowerShell/DscResource.Tests
   - git clone https://github.com/Microsoft/DscConfiguration.Tests
   - ps: |
-        Import-Module -Name .\DscResource.Tests\TestHelper.psm1 -Force
+        #Import-Module -Name .\DscResource.Tests\TestHelper.psm1 -Force
         Import-Module -Name .\DscConfiguration.Tests\TestHelper.psm1 -Force
         Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.205 -Force | Out-Null
         Install-Module -Name Pester -Repository PSGallery -Force
@@ -120,9 +120,12 @@ deploy_script:
         # TODO - standardize approach to deploying ARM template from repo handing off config name as param        
         # TODO - MVP is single VM, complete is multiple VM solution
         # TODO - tests from demo_ci
-        while ($true) {
+        
+        $count = 0
+        while ($count -le 20) {
+          $count++
           start-sleep -seconds 60
-          write-host $(get-date).Minute
+          write-host $count
         }
-        Start-Sleep 1200
-        Remove-AzureRmResourceGroup -Name $env:APPVEYOR_PROJECT_NAME -Force
+
+        Remove-AzureRmResourceGroup -Name $env:APPVEYOR_BUILD_ID -Force
