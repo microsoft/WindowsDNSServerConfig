@@ -115,6 +115,7 @@ deploy_script:
             Name                  = $Configuration.Name
             TemplateFile          = '.\Tests\Deployment\azuredeploy.json'
             TemplateParameterFile = '.\Tests\Deployment\azuredeploy.parameters.json'
+          }
         # $IaaSDeployment = New-AzureRMResourceGroupDeployment @DeployParams
     
         # TODO - standardize approach to deploying ARM template from repo handing off config name as param        
@@ -122,12 +123,11 @@ deploy_script:
         # TODO - tests from demo_ci
         
         $count = 0
-        do
+        while ($count -le 20)
         {
           $count++
           start-sleep -seconds 60
           write-host $count
         }
-        while ($count -le 20)
 
         Remove-AzureRmResourceGroup -Name $env:APPVEYOR_BUILD_ID -Force
