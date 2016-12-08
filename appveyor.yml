@@ -47,78 +47,82 @@ test_script:
 # scripts to run before deployment 
 deploy_script: 
   - ps: |
-        # Fix module path if duplicates exist
-        Invoke-UniquePSModulePath
-        
-        # Discover required modules from manifest
-        $Modules = Get-RequiredGalleryModules -ManifestData (Import-PowerShellDataFile -Path ".\$env:APPVEYOR_PROJECT_NAME.psd1") -Install
-        
         try 
         {
-          # Login to Azure using information stored in AppVeyor
-          Invoke-AzureSPNLogin
-          # Create Resource Group
-          $ResourceGroup = New-AzureRmResourceGroup -Name $env:APPVEYOR_PROJECT_NAME -Location 'EastUS2' -Force
+          # Fix module path if duplicates exist
+          Invoke-UniquePSModulePath
+          
+          # Discover required modules from manifest
+          $Modules = Get-RequiredGalleryModules -ManifestData (Import-PowerShellDataFile -Path ".\$env:APPVEYOR_PROJECT_NAME.psd1") -Install
 
-          # Create Azure Automation account
-          $AutomationAccount = New-AzureRMAutomationAccount -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -Name $env:APPVEYOR_PROJECT_ID -Location 'EastUS2'
+          # Prep and Import Configuration module
+          Import-ModuleFromSource -Name $env:APPVEYOR_PROJECT_NAME
+          $Configurations = Invoke-ConfigurationPrep -Module $env:APPVEYOR_PROJECT_NAME -Path "$env:TEMP\$env:APPVEYOR_PROJECT_ID"
+
+          # Login to Azure using information stored in AppVeyor
+          if (Invoke-AzureSPNLogin -ApplicationID $env:ApplicationID -ApplicationPassword $env:ApplicationPassword -TenantID $env:TenantID)
+          {
+            # Create Resource Group
+            $ResourceGroup = New-AzureRmResourceGroup -Name $env:APPVEYOR_BUILD_ID -Location 'EastUS2' -Force
+
+            # Create Azure Automation account
+            $AutomationAccount = New-AzureRMAutomationAccount -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -Name $env:APPVEYOR_PROJECT_ID -Location 'EastUS2'
+
+            # Upload required DSC resources (required modules)
+            $ImportedModules = @()
+            foreach($AutomationModule in $Modules) {
+              $ImportedModules += New-AzureRMAutomationModule -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Name $AutomationModule.Name -ContentLink $AutomationModule.URI
+            }
+
+            # The resource modules must finish the "Creating" stage before the configuration will compile successfully
+            foreach ($ImportedModule in $ImportedModules)
+            {
+              while ((Get-AzureRMAutomationModule -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Name $ImportedModule.Name).ProvisioningState -ne 'Succeeded')
+              { 
+                Start-Sleep -Seconds 15
+              }
+            }
+
+            foreach ($Configuration in $Configurations)
+            {
+              # Import to Azure Automation DSC
+              $ConfigurationImport = Import-AzureRmAutomationDscConfiguration -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -SourcePath $Configuration.Location -Published -Force
+            
+              # Load configdata
+              if (Test-Path ".\ConfigurationData\$($Configuration.Name).ConfigData.psd1")
+              {
+                  $ConfigurationData = Import-PowerShellDataFile ".\ConfigurationData\$($Configuration.Name).ConfigData.psd1"
+              }
+
+              # Compile in Azure Automation DSC
+              $CompileParams = @{
+                ResourceGroupName     = $env:APPVEYOR_PROJECT_NAME
+                AutomationAccountName = $env:APPVEYOR_PROJECT_ID
+                ConfigurationName     = $Configuration.Name
+                ConfigurationData     = $ConfigurationData
+              }
+              $Compile = Start-AzureRmAutomationDscCompilationJob @CompileParams
+            }
+          }
         }
         Catch
         {
-          throw $error
-        }      
-
-        # Upload required DSC resources (required modules)
-        $ImportedModules = @()
-        foreach($AutomationModule in $Modules) {
-          $ImportedModules += New-AzureRMAutomationModule -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Name $AutomationModule.Name -ContentLink $AutomationModule.URI
+            throw $error
         }
-
-        # The resource modules must finish the "Creating" stage before the configuration will compile successfully
-        foreach ($ImportedModule in $ImportedModules)
-        {
-          while ((Get-AzureRMAutomationModule -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Name $ImportedModule.Name).ProvisioningState -ne 'Succeeded')
-          { 
-            Start-Sleep -Seconds 15
-          }
-        }
-
-        # Prep and Import Configuration module
-        Import-ModuleFromSource -Name $env:APPVEYOR_PROJECT_NAME
-        $Configurations = Invoke-ConfigurationPrep -Module $env:APPVEYOR_PROJECT_NAME -Path "$env:TEMP\$env:APPVEYOR_PROJECT_ID"
-
-        foreach ($Configuration in $Configurations) {
-          # Import to Azure Automation DSC
-          $ConfigurationImport = Import-AzureRmAutomationDscConfiguration -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -AutomationAccountName $env:APPVEYOR_PROJECT_ID -SourcePath $Configuration.Location -Published -Force
-          # Load configdata
-          if (Test-Path ".\ConfigurationData\$($Configuration.Name).ConfigData.psd1")
-          {
-              $ConfigurationData = Import-PowerShellDataFile ".\ConfigurationData\$($Configuration.Name).ConfigData.psd1"
-          }
-
-          # Compile in Azure Automation DSC
-          $CompileParams = @{
+          # TODO - Deploy
+          $DeployParams = @{
             ResourceGroupName     = $env:APPVEYOR_PROJECT_NAME
-            AutomationAccountName = $env:APPVEYOR_PROJECT_ID
-            ConfigurationName     = $Configuration.Name
-            ConfigurationData     = $ConfigurationData
-          }
-          $Compile = Start-AzureRmAutomationDscCompilationJob @CompileParams
-        }
-        
-        # TODO - Deploy
-        $DeployParams = @{
-          ResourceGroupName     = $env:APPVEYOR_PROJECT_NAME
-          Name                  = $Configuration.Name
-          TemplateFile          = '.\Tests\Deployment\azuredeploy.json'
-          TemplateParameterFile = '.\Tests\Deployment\azuredeploy.parameters.json'
-          
-        }
+            Name                  = $Configuration.Name
+            TemplateFile          = '.\Tests\Deployment\azuredeploy.json'
+            TemplateParameterFile = '.\Tests\Deployment\azuredeploy.parameters.json'
         # $IaaSDeployment = New-AzureRMResourceGroupDeployment @DeployParams
     
         # TODO - standardize approach to deploying ARM template from repo handing off config name as param        
         # TODO - MVP is single VM, complete is multiple VM solution
         # TODO - tests from demo_ci
-        
-        # Start-Sleep 600
-        # Remove-AzureRmResourceGroup -Name $env:APPVEYOR_PROJECT_NAME -Force
+        while ($true) {
+          start-sleep -seconds 60
+          write-host $(get-date).Minute
+        }
+        Start-Sleep 1200
+        Remove-AzureRmResourceGroup -Name $env:APPVEYOR_PROJECT_NAME -Force
