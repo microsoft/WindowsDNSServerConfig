@@ -122,10 +122,12 @@ deploy_script:
         # TODO - tests from demo_ci
         
         $count = 0
-        while ($count -le 20) {
+        do
+        {
           $count++
           start-sleep -seconds 60
           write-host $count
         }
+        while ($count -le 20)
 
         Remove-AzureRmResourceGroup -Name $env:APPVEYOR_BUILD_ID -Force
