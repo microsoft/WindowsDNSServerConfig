@@ -3,7 +3,7 @@
 #---------------------------------#
 version: 1.0.{build}.0
 environment:
-  AppplicationID:
+  ApplicationID:
     secure: IJBqnB6WjtDi3ej/zy2D70Ry1AvJOrlZK5BhSoqEdxNENd0CL9qdMJndbi6p+di3
   ApplicationPassword:
     secure: b8lT719n/ll0Bp5SloBvzw==
@@ -53,14 +53,20 @@ deploy_script:
         # Discover required modules from manifest
         $Modules = Get-RequiredGalleryModules -ManifestData (Import-PowerShellDataFile -Path ".\$env:APPVEYOR_PROJECT_NAME.psd1") -Install
         
-        # Login to Azure using information stored in AppVeyor
-        Invoke-AzureSPNLogin
+        try 
+        {
+          # Login to Azure using information stored in AppVeyor
+          Invoke-AzureSPNLogin
+          # Create Resource Group
+          $ResourceGroup = New-AzureRmResourceGroup -Name $env:APPVEYOR_PROJECT_NAME -Location 'EastUS2' -Force
 
-        # Create Resource Group
-        $ResourceGroup = New-AzureRmResourceGroup -Name $env:APPVEYOR_PROJECT_NAME -Location 'EastUS2' -Force
-
-        # Create Azure Automation account
-        $AutomationAccount = New-AzureRMAutomationAccount -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -Name $env:APPVEYOR_PROJECT_ID -Location 'EastUS2'
+          # Create Azure Automation account
+          $AutomationAccount = New-AzureRMAutomationAccount -ResourceGroupName $env:APPVEYOR_PROJECT_NAME -Name $env:APPVEYOR_PROJECT_ID -Location 'EastUS2'
+        }
+        Catch
+        {
+          throw $error
+        }      
 
         # Upload required DSC resources (required modules)
         $ImportedModules = @()
