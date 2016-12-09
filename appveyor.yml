@@ -60,15 +60,18 @@ deploy_script:
           $Configurations = Invoke-ConfigurationPrep -Module $env:APPVEYOR_PROJECT_NAME -Path "$env:TEMP\$env:APPVEYOR_PROJECT_ID"
 
           # Login to Azure using information stored in AppVeyor and create RG and AA (AppVeyorRunner)
-          if (New-ResourceGroupForTests)
+          if (Invoke-AzureSPNLogin -ApplicationID $env:ApplicationID -ApplicationPassword $ApplicationPassword -TenantID $TenantID)
           {
+            # Create Azure Resource Group and Automation account
+            New-ResourceGroupForTests
+
             # Import the modules discovered as requirements to Azure Automation (AppVeyorRunner)
             Import-ModulesToAzureAutomation -Modules $Modules
 
             # Import and compile the Configurations using Azure Automation (AppVeyorRunner)
             foreach ($Configuration in $Configurations)
             {
-              Import-COnfigurationToAzureAutomation -Configuration $Configuration
+              Import-ConfigurationToAzureAutomation -Configuration $Configuration
             }
           }
         }
