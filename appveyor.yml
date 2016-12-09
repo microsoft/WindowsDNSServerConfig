@@ -14,8 +14,8 @@ install:
   - git clone https://github.com/PowerShell/DscResource.Tests
   - git clone https://github.com/Microsoft/DscConfiguration.Tests
   - ps: |
-        #Import-Module -Name .\DscResource.Tests\TestHelper.psm1 -Force
         Import-Module -Name .\DscConfiguration.Tests\TestHelper.psm1 -Force
+        Import-Module -Name .\DscConfiguration.Tests\AppVeyorRunner.psm1 -Force
         Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.205 -Force | Out-Null
         Install-Module -Name Pester -Repository PSGallery -Force
         Install-Module -Name AzureRM -Repository PSGallery -Force
@@ -49,59 +49,26 @@ deploy_script:
   - ps: |
         try 
         {
-          # Fix module path if duplicates exist
+          # Fix module path if duplicates exist (TestHelper)
           Invoke-UniquePSModulePath
           
-          # Discover required modules from manifest
+          # Discover required modules from manifest (TestHelper)
           $Modules = Get-RequiredGalleryModules -ManifestData (Import-PowerShellDataFile -Path ".\$env:APPVEYOR_PROJECT_NAME.psd1") -Install
 
-          # Prep and Import Configuration module
+          # Prep and Import Configuration module (TestHelper)
           Import-ModuleFromSource -Name $env:APPVEYOR_PROJECT_NAME
           $Configurations = Invoke-ConfigurationPrep -Module $env:APPVEYOR_PROJECT_NAME -Path "$env:TEMP\$env:APPVEYOR_PROJECT_ID"
 
-          # Login to Azure using information stored in AppVeyor
-          if (Invoke-AzureSPNLogin -ApplicationID $env:ApplicationID -ApplicationPassword $env:ApplicationPassword -TenantID $env:TenantID)
+          # Login to Azure using information stored in AppVeyor and create RG and AA (AppVeyorRunner)
+          if (New-ResourceGroupForTests)
           {
-            # Create Resource Group
-            $ResourceGroup = New-AzureRmResourceGroup -Name $env:APPVEYOR_BUILD_ID -Location 'EastUS2' -Force
+            # Import the modules discovered as requirements to Azure Automation (AppVeyorRunner)
+            Import-ModulesToAzureAutomation -Modules $Modules
 
-            # Create Azure Automation account
-            $AutomationAccount = New-AzureRMAutomationAccount -ResourceGroupName $env:APPVEYOR_BUILD_ID -Name $env:APPVEYOR_PROJECT_ID -Location 'EastUS2'
-
-            # Upload required DSC resources (required modules)
-            $ImportedModules = @()
-            foreach($AutomationModule in $Modules) {
-              $ImportedModules += New-AzureRMAutomationModule -ResourceGroupName $env:APPVEYOR_BUILD_ID -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Name $AutomationModule.Name -ContentLink $AutomationModule.URI
-            }
-
-            # The resource modules must finish the "Creating" stage before the configuration will compile successfully
-            foreach ($ImportedModule in $ImportedModules)
-            {
-              while ((Get-AzureRMAutomationModule -ResourceGroupName $env:APPVEYOR_BUILD_ID -AutomationAccountName $env:APPVEYOR_PROJECT_ID -Name $ImportedModule.Name).ProvisioningState -ne 'Succeeded')
-              { 
-                Start-Sleep -Seconds 15
-              }
-            }
-
+            # Import and compile the Configurations using Azure Automation (AppVeyorRunner)
             foreach ($Configuration in $Configurations)
             {
-              # Import to Azure Automation DSC
-              $ConfigurationImport = Import-AzureRmAutomationDscConfiguration -ResourceGroupName $env:APPVEYOR_BUILD_ID -AutomationAccountName $env:APPVEYOR_PROJECT_ID -SourcePath $Configuration.Location -Published -Force
-            
-              # Load configdata
-              if (Test-Path ".\ConfigurationData\$($Configuration.Name).ConfigData.psd1")
-              {
-                  $ConfigurationData = Import-PowerShellDataFile ".\ConfigurationData\$($Configuration.Name).ConfigData.psd1"
-              }
-
-              # Compile in Azure Automation DSC
-              $CompileParams = @{
-                ResourceGroupName     = $env:APPVEYOR_BUILD_ID
-                AutomationAccountName = $env:APPVEYOR_PROJECT_ID
-                ConfigurationName     = $Configuration.Name
-                ConfigurationData     = $ConfigurationData
-              }
-              $Compile = Start-AzureRmAutomationDscCompilationJob @CompileParams
+              Import-COnfigurationToAzureAutomation -Configuration $Configuration
             }
           }
         }
@@ -109,15 +76,19 @@ deploy_script:
         {
             throw $error
         }
-          # TODO - Deploy
+        
+        
+        <#
+        TODO - Deploy
           $DeployParams = @{
             ResourceGroupName     = $env:APPVEYOR_BUILD_ID
             Name                  = $Configuration.Name
             TemplateFile          = '.\Tests\Deployment\azuredeploy.json'
             TemplateParameterFile = '.\Tests\Deployment\azuredeploy.parameters.json'
           }
-        # $IaaSDeployment = New-AzureRMResourceGroupDeployment @DeployParams
-    
+        $IaaSDeployment = New-AzureRMResourceGroupDeployment @DeployParams
+        #>
+        
         # TODO - standardize approach to deploying ARM template from repo handing off config name as param        
         # TODO - MVP is single VM, complete is multiple VM solution
         # TODO - tests from demo_ci
