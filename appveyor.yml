@@ -60,7 +60,7 @@ deploy_script:
           $Configurations = Invoke-ConfigurationPrep -Module $env:APPVEYOR_PROJECT_NAME -Path "$env:TEMP\$env:APPVEYOR_PROJECT_ID"
 
           # Login to Azure using information stored in AppVeyor and create RG and AA (AppVeyorRunner)
-          if (Invoke-AzureSPNLogin -ApplicationID $env:ApplicationID -ApplicationPassword $ApplicationPassword -TenantID $TenantID)
+          if (Invoke-AzureSPNLogin -ApplicationID $env:ApplicationID -ApplicationPassword $env:ApplicationPassword -TenantID $env:TenantID)
           {
             # Create Azure Resource Group and Automation account
             New-ResourceGroupForTests
