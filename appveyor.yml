@@ -54,24 +54,32 @@ deploy_script:
           
           # Discover required modules from manifest (TestHelper)
           $Modules = Get-RequiredGalleryModules -ManifestData (Import-PowerShellDataFile -Path ".\$env:APPVEYOR_PROJECT_NAME.psd1") -Install
+          Write-Host "Downloaded modules:`n$($Modules | Foreach -Process {$_.Name})"
 
           # Prep and Import Configuration module (TestHelper)
           Import-ModuleFromSource -Name $env:APPVEYOR_PROJECT_NAME
           $Configurations = Invoke-ConfigurationPrep -Module $env:APPVEYOR_PROJECT_NAME -Path "$env:TEMP\$env:APPVEYOR_PROJECT_ID"
+          Write-Host "Prepared configurations:`n$($Configurations | Foreach -Process {$_.Name})"
 
           # Login to Azure using information stored in AppVeyor and create RG and AA (AppVeyorRunner)
+          Write-Host "Logging in to Azure"
           if (Invoke-AzureSPNLogin -ApplicationID $env:ApplicationID -ApplicationPassword $env:ApplicationPassword -TenantID $env:TenantID)
           {
             # Create Azure Resource Group and Automation account
-            New-ResourceGroupForTests
-
-            # Import the modules discovered as requirements to Azure Automation (AppVeyorRunner)
-            Import-ModulesToAzureAutomation -Modules $Modules
-
-            # Import and compile the Configurations using Azure Automation (AppVeyorRunner)
-            foreach ($Configuration in $Configurations)
+            Write-Host 'Creating Resource Group and Automation account'
+            if (New-ResourceGroupForTests)
             {
-              Import-ConfigurationToAzureAutomation -Configuration $Configuration
+              # Import the modules discovered as requirements to Azure Automation (AppVeyorRunner)
+              Write-Host 'Importing modules to Azure Automation'
+              If (Import-ModulesToAzureAutomation -Modules $Modules)
+              {
+                # Import and compile the Configurations using Azure Automation (AppVeyorRunner)
+                foreach ($Configuration in $Configurations)
+                {
+                  Write-Host "Importing $($Configuration.Name) to Azure Automation"
+                  Import-ConfigurationToAzureAutomation -Configuration $Configuration
+                }
+              }
             }
           }
         }
