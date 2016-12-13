@@ -47,8 +47,7 @@ test_script:
 # scripts to run before deployment 
 deploy_script: 
   - ps: |
-        try 
-        {
+        try {
           # Fix module path if duplicates exist (TestHelper)
           Invoke-UniquePSModulePath
           
@@ -64,33 +63,33 @@ deploy_script:
           # Login to Azure using information stored in AppVeyor and create RG and AA (AppVeyorRunner)
           Write-Host "Logging in to Azure"
           if (Invoke-AzureSPNLogin -ApplicationID $env:ApplicationID -ApplicationPassword $env:ApplicationPassword -TenantID $env:TenantID) {
-            
+
             # Create Azure Resource Group and Automation account (AppVeyorRunner)
-            Write-Host 'Creating Resource Group TestAutomation'+$env:APPVEYOR_BUILD_ID+' and Automation account DSCValidation'+$env:APPVEYOR_BUILD_ID
+            Write-Host "Creating Resource Group TestAutomation$env:APPVEYOR_BUILD_ID and Automation account DSCValidation$env:APPVEYOR_BUILD_ID"
             if (New-ResourceGroupForTests) {
-              
+
               # Import the modules discovered as requirements to Azure Automation (AppVeyorRunner)
               Write-Host 'Importing modules to Azure Automation'
-              If (Import-ModulesToAzureAutomation -Modules $Modules) {
-
-                # Allow module activities to extract before importing configuration (AppVeyorRunner)
-                  Write-Host 'Waiting for all modules to finish extracting activities'
-                  If (Wait-ModuleExtraction -Modules $Modules) {
+              foreach ($ImportModule in $Modules) {Import-ModuleToAzureAutomation -Module $ImportModule}
+              
+              # Allow module activities to extract before importing configuration (AppVeyorRunner)
+              Write-Host 'Waiting for all modules to finish extracting activities'
+              foreach ($WaitForModule in $Modules) {Wait-ModuleExtraction -Module $WaitForModule}
                    
-                    # Import and compile the Configurations using Azure Automation (AppVeyorRunner)
-                    foreach ($Configuration in $Configurations) {
-                      Write-Host "Importing $($Configuration.Name) to Azure Automation"
-                      Import-ConfigurationToAzureAutomation -Configuration $Configuration
-                    }
+              # Import and compile the Configurations using Azure Automation (AppVeyorRunner)
+              Write-Host 'Importing configurations to Azure Automation'              
+              foreach ($ImportConfiguration in $Configurations) {Import-ConfigurationToAzureAutomation -Configuration $ImportConfiguration}
 
-                    # THIS TIMER IS FOR TEMPORARY DEVELOPMENT PURPOSES ONLY        
-                      $count = 0
-                      while ($count -le 20) {
-                      $count++
-                      start-sleep -seconds 60
-                      write-host $count
-                  }
-                }
+              # Wait for Configurations to compile
+              Write-Host 'Waiting for configurations to finsih compiling in Azure Automation'              
+              foreach ($WaitForConfiguration in $Configurations) {Wait-ConfigurationCompilation -Configuration WaitForConfiguration}
+
+              # THIS TIMER IS FOR TEMPORARY DEVELOPMENT PURPOSES ONLY        
+              $count = 0
+              while ($count -le 20) {
+                $count++
+                start-sleep -seconds 60
+                write-host $count
               }
             }
           }
