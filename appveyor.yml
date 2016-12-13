@@ -66,7 +66,7 @@ deploy_script:
           if (Invoke-AzureSPNLogin -ApplicationID $env:ApplicationID -ApplicationPassword $env:ApplicationPassword -TenantID $env:TenantID) {
             
             # Create Azure Resource Group and Automation account (AppVeyorRunner)
-            Write-Host 'Creating Resource Group TestAutomation'+$env:APPVEYOR_PULL_REQUEST_NUMBER+' and Automation account DSCValidation'+$env:APPVEYOR_PULL_REQUEST_NUMBER
+            Write-Host 'Creating Resource Group TestAutomation'+$env:APPVEYOR_BUILD_ID+' and Automation account DSCValidation'+$env:APPVEYOR_BUILD_ID
             if (New-ResourceGroupForTests) {
               
               # Import the modules discovered as requirements to Azure Automation (AppVeyorRunner)
