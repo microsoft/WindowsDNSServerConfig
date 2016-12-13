@@ -97,4 +97,4 @@ deploy_script:
             throw $error
         }
 
-        Remove-AzureRmResourceGroup -Name $env:APPVEYOR_BUILD_ID -Force
+        Remove-AzureTestResources
