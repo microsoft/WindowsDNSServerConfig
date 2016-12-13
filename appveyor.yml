@@ -63,36 +63,39 @@ deploy_script:
 
           # Login to Azure using information stored in AppVeyor and create RG and AA (AppVeyorRunner)
           Write-Host "Logging in to Azure"
-          if (Invoke-AzureSPNLogin -ApplicationID $env:ApplicationID -ApplicationPassword $env:ApplicationPassword -TenantID $env:TenantID)
-          {
-            # Create Azure Resource Group and Automation account
+          if (Invoke-AzureSPNLogin -ApplicationID $env:ApplicationID -ApplicationPassword $env:ApplicationPassword -TenantID $env:TenantID) {
+            
+            # Create Azure Resource Group and Automation account (AppVeyorRunner)
             Write-Host 'Creating Resource Group and Automation account'
-            if (New-ResourceGroupForTests)
-            {
+            if (New-ResourceGroupForTests) {
+              
               # Import the modules discovered as requirements to Azure Automation (AppVeyorRunner)
               Write-Host 'Importing modules to Azure Automation'
-              If (Import-ModulesToAzureAutomation -Modules $Modules)
-              {
-                # Import and compile the Configurations using Azure Automation (AppVeyorRunner)
-                foreach ($Configuration in $Configurations)
-                {
-                  Write-Host "Importing $($Configuration.Name) to Azure Automation"
-                  Import-ConfigurationToAzureAutomation -Configuration $Configuration
+              If (Import-ModulesToAzureAutomation -Modules $Modules) {
 
-                  # THIS TIMER IS FOR TEMPORARY DEVELOPMENT PURPOSES ONLY        
-                  $count = 0
-                  while ($count -le 20)
-                  {
-                    $count++
-                    start-sleep -seconds 60
-                    write-host $count
+                # Allow module activities to extract before importing configuration (AppVeyorRunner)
+                  Write-Host 'Waiting for all modules to finish extracting activities'
+                  If (Wait-ModelExtraction -Modules $Modules) {
+                   
+                    # Import and compile the Configurations using Azure Automation (AppVeyorRunner)
+                    foreach ($Configuration in $Configurations) {
+                      Write-Host "Importing $($Configuration.Name) to Azure Automation"
+                      Import-ConfigurationToAzureAutomation -Configuration $Configuration
+
+                      # THIS TIMER IS FOR TEMPORARY DEVELOPMENT PURPOSES ONLY        
+                      $count = 0
+                      while ($count -le 20) {
+                      $count++
+                      start-sleep -seconds 60
+                      write-host $count
+                    }
                   }
                 }
               }
             }
           }
         }
-        Catch
+        catch [System.Exception] {
         {
             throw $error
         }
