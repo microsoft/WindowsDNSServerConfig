@@ -81,8 +81,8 @@ deploy_script:
               foreach ($ImportConfiguration in $Configurations) {Import-ConfigurationToAzureAutomation -Configuration $ImportConfiguration}
 
               # Wait for Configurations to compile
-              Write-Host 'Waiting for configurations to finsih compiling in Azure Automation'              
-              foreach ($WaitForConfiguration in $Configurations) {Wait-ConfigurationCompilation -Configuration WaitForConfiguration}
+              Write-Host 'Waiting for configurations to finish compiling in Azure Automation'              
+              foreach ($WaitForConfiguration in $Configurations) {Wait-ConfigurationCompilation -Configuration $WaitForConfiguration}
 
               # THIS TIMER IS FOR TEMPORARY DEVELOPMENT PURPOSES ONLY        
               $count = 0
