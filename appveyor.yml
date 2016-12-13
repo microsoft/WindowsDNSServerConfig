@@ -75,7 +75,7 @@ deploy_script:
 
                 # Allow module activities to extract before importing configuration (AppVeyorRunner)
                   Write-Host 'Waiting for all modules to finish extracting activities'
-                  If (Wait-ModelExtraction -Modules $Modules) {
+                  If (Wait-ModuleExtraction -Modules $Modules) {
                    
                     # Import and compile the Configurations using Azure Automation (AppVeyorRunner)
                     foreach ($Configuration in $Configurations) {
