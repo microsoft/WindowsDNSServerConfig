@@ -96,7 +96,6 @@ deploy_script:
           }
         }
         catch [System.Exception] {
-        {
             throw $error
         }
 
