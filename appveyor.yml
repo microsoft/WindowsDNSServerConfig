@@ -2,6 +2,7 @@
 #      environment configuration  #
 #---------------------------------#
 version: 1.0.{build}.0
+clone_folder: c:\projects\$(APPVEYOR_PROJECT_NAME)
 environment:
   ApplicationID:
     secure: IJBqnB6WjtDi3ej/zy2D70Ry1AvJOrlZK5BhSoqEdxNENd0CL9qdMJndbi6p+di3
@@ -48,13 +49,12 @@ build: false
 
 test_script:
     - ps: |
-        # Suppressing tests until configuration test helper is created
-        # $testResultsFile = ".\TestsResults.xml"
-        # $res = Invoke-Pester -OutputFormat NUnitXml -OutputFile $testResultsFile -PassThru
-        # (New-Object 'System.Net.WebClient').UploadFile("https://ci.appveyor.com/api/testresults/nunit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $testResultsFile))
-        # if ($res.FailedCount -gt 0) {
-        #     throw "$($res.FailedCount) tests failed."
-        # }
+        $testResultsFile = ".\TestsResults.xml"
+        $res = Invoke-Pester -OutputFormat NUnitXml -OutputFile $testResultsFile -PassThru -Verbose
+        (New-Object 'System.Net.WebClient').UploadFile("https://ci.appveyor.com/api/testresults/nunit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $testResultsFile))
+        if ($res.FailedCount -gt 0) {
+            throw "$($res.FailedCount) tests failed."
+        }
 
 #---------------------------------# 
 #      deployment configuration   # 
