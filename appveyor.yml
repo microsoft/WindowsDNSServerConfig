@@ -11,24 +11,30 @@ environment:
   TenantID:
     secure: J/my7xsOE9jewR0DDhD+EU5jeo5Bp83/nmIK8a8QI0QLoZXStCOtk1vUjVsKylW2
 install:
-  - git clone https://github.com/PowerShell/DscResource.Tests
   - git clone https://github.com/Microsoft/DscConfiguration.Tests
   - ps: |
         try {
+          # Load modules from test repo
           Import-Module -Name .\DscConfiguration.Tests\TestHelper.psm1 -Force
           Import-Module -Name .\DscConfiguration.Tests\AppVeyorRunner.psm1 -Force
+          
+          # Install supporting environment modules from PSGallery
+          $EnvironmentModules = @(
+            'Pester',
+            'PSScriptAnalyzer',
+            'AzureRM'
+          )
           Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.205 -Force | Out-Null
-          Install-Module -Name Pester -Repository PSGallery -Force
-          Install-Module -Name AzureRM -Repository PSGallery -Force
-
+          Install-Module -Name $EnvironmentModules -Repository PSGallery -Force
+          
           # Fix module path if duplicates exist (TestHelper)
           Invoke-UniquePSModulePath
           
-          # Discover required modules from manifest (TestHelper)
+          # Discover required modules from Configuration manifest (TestHelper)
           $Modules = Get-RequiredGalleryModules -ManifestData (Import-PowerShellDataFile -Path ".\$env:APPVEYOR_PROJECT_NAME.psd1") -Install
           Write-Host "Downloaded modules:`n$($Modules | Foreach -Process {$_.Name})"
 
-          # Prep and Import Configuration module (TestHelper)
+          # Prep and import Configurations from module (TestHelper)
           Import-ModuleFromSource -Name $env:APPVEYOR_PROJECT_NAME
           $Configurations = Invoke-ConfigurationPrep -Module $env:APPVEYOR_PROJECT_NAME -Path "$env:TEMP\$env:APPVEYOR_PROJECT_ID"
           Write-Host "Prepared configurations:`n$($Configurations | Foreach -Process {$_.Name})"
