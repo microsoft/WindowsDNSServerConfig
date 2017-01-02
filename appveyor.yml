@@ -14,9 +14,18 @@ install:
   - ps: |
         Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.205 -Force | Out-Null
         Install-Module InvokeBuild -force
+        $env:BuildFolder = $env:APPVEYOR_BUILD_FOLDER
+        $env:ProjectName = $env:APPVEYOR_PROJECT_NAME
+        $env:ProjectID = $env:APPVEYOR_POJECT_ID
+        $env:BuildID = $env:APPVEYOR_BUILD_ID
 build_script:
   - ps: |
-        Invoke-Build -File .\DscConfiguration.Tests\.build.ps1
+        if (Test-Path -Path .\.build.ps1) {
+          Invoke-Build
+        }
+        else {
+          Invoke-Build -File .\DscConfiguration.Tests\.build.ps1
+        }
 notifications:
   - provider: Email
     to: $(APPVEYOR_REPO_COMMIT_AUTHOR_EMAIL)
