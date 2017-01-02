@@ -19,7 +19,6 @@ build_script:
         Invoke-Build
 notifications:
   -provider: Email
-    to:
-      - {APPVEYOR_REPO_COMMIT_AUTHOR_EMAIL}
+    to: {APPVEYOR_REPO_COMMIT_AUTHOR_EMAIL}
     subject: 'Build {{status}}'
     message: "{{message}}, {{commitId}}"
