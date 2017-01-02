@@ -16,6 +16,7 @@ install:
         Install-Module InvokeBuild -force
 build_script:
   - ps: |
+        Set-Location .\DscConfiguration.Tests\
         Invoke-Build
 notifications:
   - provider: Email
