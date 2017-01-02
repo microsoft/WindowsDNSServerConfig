@@ -7,6 +7,10 @@ environment:
     secure: b8lT719n/ll0Bp5SloBvzw==
   TenantID:
     secure: J/my7xsOE9jewR0DDhD+EU5jeo5Bp83/nmIK8a8QI0QLoZXStCOtk1vUjVsKylW2
+  BuildFolder: $(APPVEYOR_BUILD_FOLDER)
+  ProjectName: $(APPVEYOR_PROJECT_NAME)
+  ProjectID: $(APPVEYOR_POJECT_ID)
+  BuildID: $(APPVEYOR_BUILD_ID)
 matrix:
   fast_finish: true
 install:
@@ -14,10 +18,6 @@ install:
   - ps: |
         Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.205 -Force | Out-Null
         Install-Module InvokeBuild -force
-        $env:BuildFolder = $env:APPVEYOR_BUILD_FOLDER
-        $env:ProjectName = $env:APPVEYOR_PROJECT_NAME
-        $env:ProjectID = $env:APPVEYOR_POJECT_ID
-        $env:BuildID = $env:APPVEYOR_BUILD_ID
 build_script:
   - ps: |
         if (Test-Path -Path .\.build.ps1) {
