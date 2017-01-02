@@ -1,6 +1,3 @@
-#---------------------------------#
-#      environment configuration  #
-#---------------------------------#
 version: 1.0.{build}.0
 clone_folder: c:\projects\$(APPVEYOR_PROJECT_NAME)
 environment:
@@ -10,94 +7,19 @@ environment:
     secure: b8lT719n/ll0Bp5SloBvzw==
   TenantID:
     secure: J/my7xsOE9jewR0DDhD+EU5jeo5Bp83/nmIK8a8QI0QLoZXStCOtk1vUjVsKylW2
+matrix:
+  fast_finish: true
 install:
   - git clone https://github.com/Microsoft/DscConfiguration.Tests
   - ps: |
-        try {
-          # Load modules from test repo
-          Import-Module -Name .\DscConfiguration.Tests\TestHelper.psm1 -Force
-          Import-Module -Name .\DscConfiguration.Tests\AppVeyorRunner.psm1 -Force
-          
-          # Install supporting environment modules from PSGallery
-          $EnvironmentModules = @(
-            'Pester',
-            'PSScriptAnalyzer',
-            'AzureRM'
-          )
-          Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.205 -Force | Out-Null
-          Install-Module -Name $EnvironmentModules -Repository PSGallery -Force
-          
-          # Fix module path if duplicates exist (TestHelper)
-          Invoke-UniquePSModulePath
-          
-          # Discover required modules from Configuration manifest (TestHelper)
-          $Modules = Get-RequiredGalleryModules -ManifestData (Import-PowerShellDataFile -Path ".\$env:APPVEYOR_PROJECT_NAME.psd1") -Install
-          Write-Host "Downloaded modules:`n$($Modules | Foreach -Process {$_.Name})"
-
-          # Prep and import Configurations from module (TestHelper)
-          Import-ModuleFromSource -Name $env:APPVEYOR_PROJECT_NAME
-          $Configurations = Invoke-ConfigurationPrep -Module $env:APPVEYOR_PROJECT_NAME -Path "$env:TEMP\$env:APPVEYOR_PROJECT_ID"
-          Write-Host "Prepared configurations:`n$($Configurations | Foreach -Process {$_.Name})"
-        }
-        catch [System.Exception] {
-            throw $error
-        }
-        
-#---------------------------------#
-#      build configuration        #
-#---------------------------------#
-
-build: false
-
-#---------------------------------#
-#      test configuration         #
-#---------------------------------#
-
-test_script:
-    - ps: |
-        $testResultsFile = ".\TestsResults.xml"
-        $res = Invoke-Pester -OutputFormat NUnitXml -OutputFile $testResultsFile -PassThru
-        (New-Object 'System.Net.WebClient').UploadFile("https://ci.appveyor.com/api/testresults/nunit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $testResultsFile))
-        if ($res.FailedCount -gt 0) {
-            throw "$($res.FailedCount) tests failed."
-        }
-
-#---------------------------------# 
-#      deployment configuration   # 
-#---------------------------------# 
-
-# scripts to run before deployment 
-deploy_script: 
+    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.205 -Force | Out-Null
+    Install-Module Invoke-Build -force
+build_script:
   - ps: |
-        try {
-          # Login to Azure using information stored in AppVeyor and create RG and AA (AppVeyorRunner)
-          Write-Host "Logging in to Azure"
-          if (Invoke-AzureSPNLogin -ApplicationID $env:ApplicationID -ApplicationPassword $env:ApplicationPassword -TenantID $env:TenantID) {
-
-            # Create Azure Resource Group and Automation account (AppVeyorRunner)
-            Write-Host "Creating Resource Group TestAutomation$env:APPVEYOR_BUILD_ID and Automation account DSCValidation$env:APPVEYOR_BUILD_ID"
-            if (New-ResourceGroupForTests) {
-
-              # Import the modules discovered as requirements to Azure Automation (AppVeyorRunner)
-              Write-Host 'Importing modules to Azure Automation'
-              foreach ($ImportModule in $Modules) {Import-ModuleToAzureAutomation -Module $ImportModule}
-              
-              # Allow module activities to extract before importing configuration (AppVeyorRunner)
-              Write-Host 'Waiting for all modules to finish extracting activities'
-              foreach ($WaitForModule in $Modules) {Wait-ModuleExtraction -Module $WaitForModule}
-                   
-              # Import and compile the Configurations using Azure Automation (AppVeyorRunner)
-              Write-Host 'Importing configurations to Azure Automation'              
-              foreach ($ImportConfiguration in $Configurations) {Import-ConfigurationToAzureAutomation -Configuration $ImportConfiguration}
-
-              # Wait for Configurations to compile
-              Write-Host 'Waiting for configurations to finish compiling in Azure Automation'              
-              foreach ($WaitForConfiguration in $Configurations) {Wait-ConfigurationCompilation -Configuration $WaitForConfiguration}
-            }
-          }
-        }
-        catch [System.Exception] {
-            throw $error
-        }
-
-        Remove-AzureTestResources
+    Invoke-Build
+notifications:
+  -provider: Email
+    to:
+      - {APPVEYOR_REPO_COMMIT_AUTHOR_EMAIL}
+    subject: 'Build {{status}}'
+    message: "{{message}}, {{commitId}}"
