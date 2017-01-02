@@ -16,8 +16,7 @@ install:
         Install-Module InvokeBuild -force
 build_script:
   - ps: |
-        Set-Location .\DscConfiguration.Tests\
-        Invoke-Build
+        Invoke-Build -File .\DscConfiguration.Tests\.build.ps1
 notifications:
   - provider: Email
     to: $(APPVEYOR_REPO_COMMIT_AUTHOR_EMAIL)
