@@ -18,7 +18,7 @@ build_script:
   - ps: |
         Invoke-Build
 notifications:
-  -provider: Email
+  - provider: Email
     to: {APPVEYOR_REPO_COMMIT_AUTHOR_EMAIL}
     subject: 'Build {{status}}'
     message: "{{message}}, {{commitId}}"
