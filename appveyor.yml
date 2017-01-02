@@ -13,7 +13,7 @@ install:
   - git clone https://github.com/Microsoft/DscConfiguration.Tests
   - ps: |
         Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.205 -Force | Out-Null
-        Install-Module Invoke-Build -force
+        Install-Module InvokeBuild -force
 build_script:
   - ps: |
         Invoke-Build
