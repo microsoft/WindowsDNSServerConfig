@@ -21,8 +21,8 @@ install:
 build_script:
   - ps: |
         if (Test-Path -Path .\.build.ps1) {
-          Invoke-Build
+          Invoke-Build -Summary
         }
         else {
-          Invoke-Build -File .\DscConfiguration.Tests\.build.ps1
+          Invoke-Build -File .\DscConfiguration.Tests\.build.ps1 -Summary
         }
