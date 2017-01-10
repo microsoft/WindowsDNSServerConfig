@@ -110,11 +110,7 @@ PrivateData = @{
         # ReleaseNotes = ''
         
         # Operating Systems supported by Configurations in this module
-<<<<<<< HEAD
         WindowsOSVersion = '2016-Nano-Server'
-=======
-        WindowsOSVersion = '2012-Datacenter','2012-R2-Datacenter','2016-Datacenter'
->>>>>>> 8a5a8fb31278d58e7ddfc5d13ff5410518314270
         # '2008-R2-SP1','2012-Datacenter','2012-R2-Datacenter','2016-Datacenter','2016-Nano-Server'
 
     } # End of PSData hashtable
