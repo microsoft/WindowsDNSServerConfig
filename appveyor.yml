@@ -26,7 +26,7 @@ install:
         Install-Module InvokeBuild,Pester,PSScriptAnalyzer -Scope CurrentUser -SkipPublisherCheck -Repository PSGallery -Force
 
         # Load required modules from gallery
-        foreach ($module in $env:RequiredModules.split(',')) {
+        foreach ($module in $env:RequiredModules) {
             Install-Module $module -Repository PSGallery -Scope CurrentUser -Force
         }
 build_script:
