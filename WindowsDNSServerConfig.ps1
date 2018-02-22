@@ -32,7 +32,7 @@ https://github.com/Microsoft/WindowsDNSServerConfig/blob/master/README.md##relea
 
 #>
 
-#Requires -Module xDNSServer
+#Requires -Module @{moduleversion = '1.9.0.0'; modulename = 'xDNSServer'}
 
 <# 
 
@@ -57,16 +57,46 @@ configuration WindowsDNSServerConfig
 
     Import-DscResource -module 'xDnsServer','PSDesiredStateConfiguration'
     
-    Node $AllNodes.NodeName
+    $ZoneData = 
+            @{
+                PrimaryZone     = 'Contoso.com';
+                ARecords        = 
+                @{
+                    'ARecord1'  = '10.0.0.25';
+                    'ARecord2'  = '10.0.0.26';
+                    'ARecord3'  = '10.0.0.27'
+                };
+                CNameRecords    = 
+                @{
+                    'www'       = 'ARecord1';
+                    'wwwtest'   = 'ARecord2';
+                    'wwwqa'     = 'ARecord3'
+                }
+            },
+            @{
+                PrimaryZone     = 'Fabrikam.com';
+                ARecords        = 
+                @{
+                    'ARecord1'  = '10.0.0.35';
+                    'ARecord2'  = '10.0.0.36';
+                    'ARecord3'  = '10.0.0.37'
+                };
+                CNameRecords    = 
+                @{
+                    'www'       = 'ARecord1';
+                    'wwwtest'   = 'ARecord2';
+                    'wwwqa'     = 'ARecord3'
+                }
+            }
+
     {
-        # WindowsOptionalFeature is compatible with the Nano Server installation option
         WindowsOptionalFeature DNS
         {
             Ensure  = 'Enable'
             Name    = 'DNS-Server-Full-Role'
         }
         
-        foreach ($Zone in $Node.ZoneData)
+        foreach ($Zone in $ZoneData)
         {
             xDnsServerPrimaryZone $Zone.PrimaryZone
             {
