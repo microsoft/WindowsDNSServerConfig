@@ -88,10 +88,11 @@ configuration WindowsDNSServerConfig
             }
         }
 
-    WindowsOptionalFeature DNS
+    WindowsFeature DNS
     {
         Ensure  = 'Enable'
-        Name    = 'DNS-Server-Full-Role'
+        Name    = 'DNS'
+        IncludeAllSubFeature = $true
     }
     
     foreach ($Zone in $ZoneData)
@@ -100,7 +101,7 @@ configuration WindowsDNSServerConfig
         {
             Ensure    = 'Present'                
             Name      = $Zone.PrimaryZone
-            DependsOn = '[WindowsOptionalFeature]DNS'
+            DependsOn = '[WindowsFeature]DNS'
         }
 
         foreach ($ARecord in $Zone.ARecords.Keys)
@@ -112,7 +113,7 @@ configuration WindowsDNSServerConfig
                 Zone      = $Zone.PrimaryZone
                 Type      = 'ARecord'
                 Target    = $Zone.ARecords[$ARecord]
-                DependsOn = "[WindowsOptionalFeature]DNS","[xDnsServerPrimaryZone]$($Zone.PrimaryZone)"
+                DependsOn = "[WindowsFeature]DNS","[xDnsServerPrimaryZone]$($Zone.PrimaryZone)"
             }        
         }
 
@@ -125,7 +126,7 @@ configuration WindowsDNSServerConfig
                 Zone      = $Zone.PrimaryZone
                 Type      = 'CName'
                 Target    = $Zone.CNameRecords[$CNameRecord]
-                DependsOn = "[WindowsOptionalFeature]DNS","[xDnsServerPrimaryZone]$($Zone.PrimaryZone)"
+                DependsOn = "[WindowsFeature]DNS","[xDnsServerPrimaryZone]$($Zone.PrimaryZone)"
             }        
         }
     }
