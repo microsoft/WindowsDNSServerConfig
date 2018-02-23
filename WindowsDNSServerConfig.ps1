@@ -90,7 +90,7 @@ configuration WindowsDNSServerConfig
 
     WindowsFeature DNS
     {
-        Ensure  = 'Enable'
+        Ensure  = 'Present'
         Name    = 'DNS'
         IncludeAllSubFeature = $true
     }
