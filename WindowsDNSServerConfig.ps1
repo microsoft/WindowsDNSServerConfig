@@ -32,7 +32,7 @@ https://github.com/Microsoft/WindowsDNSServerConfig/blob/master/README.md##relea
 
 #>
 
-#Requires -Module @{moduleversion = '1.9.0.0'; modulename = 'xDNSServer'}
+#Requires -Module @{ModuleVersion = '1.9.0.0'; ModuleName = 'xDNSServer'}
 
 <# 
 
@@ -43,18 +43,9 @@ https://github.com/Microsoft/WindowsDNSServerConfig/blob/master/README.md##relea
 
 configuration WindowsDNSServerConfig
 {
-    <#
-        .DESCRIPTION
-        Basic configuration for Windows DNS Server with zones and records
 
-        .EXAMPLE
-        WindowsDNSServer -outpath c:\dsc\
-
-        .NOTES
-        This configuration requires the corresponding configdata file
-    #>
-
-    Import-DscResource -module 'xDnsServer','PSDesiredStateConfiguration'
+Import-DscResource -ModuleName @{ModuleName = 'xDnsServer'; ModuleVersion = '1.9.0.0'}
+Import-DscResource -ModuleName 'PSDesiredStateConfiguration'
     
     $ZoneData = 
         @{
